@@ -425,5 +425,32 @@
   resize();
   requestAnimationFrame(frame);
 
+  // ── Прозрачность всех секций Тильды ──
+  function clearTildaBg() {
+    var sel = [
+      '.t-cover',
+      '.t-section',
+      '.t-section__container',
+      '.t-cover__carrier',
+      '.t-cover__filter',
+      '[data-record-type]',
+      '.r'
+    ].join(',');
+    var els = document.querySelectorAll(sel);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.style.setProperty('background-color', 'transparent', 'important');
+      el.style.setProperty('background-image', 'none', 'important');
+    }
+  }
+
+  // Запускаем сразу и после загрузки (Тильда рендерит блоки асинхронно)
+  clearTildaBg();
+  document.addEventListener('DOMContentLoaded', clearTildaBg);
+  window.addEventListener('load', clearTildaBg);
+  // Наблюдаем за появлением новых блоков
+  var mo = new MutationObserver(clearTildaBg);
+  mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+
 })();
 </script>
