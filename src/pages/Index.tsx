@@ -170,7 +170,27 @@ export default function Index() {
           ref={(el) => { sectionRefs.current[0] = el }}
           className="relative flex min-h-screen flex-col justify-end px-5 pb-16 pt-24 md:px-12 md:pb-28"
         >
-          <div className="max-w-4xl">
+          {/* Dashboard screenshot — floating right */}
+          <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-[52%] items-center justify-end pr-4 xl:flex 2xl:pr-12">
+            <div className="relative mt-16">
+              {/* Glow behind */}
+              <div className="absolute -inset-4 rounded-2xl bg-blue-500/20 blur-3xl" />
+              {/* Frame */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/15 shadow-2xl shadow-black/40"
+                style={{ backdropFilter: 'blur(2px)' }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/4b414f77-bc82-4126-9711-0ef8adae78f0.png"
+                  alt="Личный кабинет Флоустат"
+                  className="block w-full max-w-[640px] opacity-90"
+                  draggable={false}
+                />
+                {/* Subtle gradient fade at bottom */}
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-4xl xl:max-w-[46%]">
             <div className="mb-3 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-md md:mb-4 md:px-4 md:py-1.5">
               <p className="font-mono text-[10px] text-white/90 md:text-xs">AI Visibility Analytics · LLM Monitoring</p>
             </div>
