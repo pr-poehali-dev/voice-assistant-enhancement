@@ -221,7 +221,7 @@ export default function Index() {
         >
           <div className="flex h-10 w-10 items-center justify-center transition-all duration-300 hover:scale-110">
             <img
-              src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/e394937d-b04d-40db-ba38-2e00052747d0.png"
+              src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/a4e5eecc-ef88-443a-8a56-39aecdcdb9ba.png"
               alt="Флоустат"
               className="h-9 w-9 object-contain"
               style={{ filter: "brightness(0) invert(1)" }}
