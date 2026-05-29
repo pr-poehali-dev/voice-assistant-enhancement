@@ -1,29 +1,35 @@
 <!--
   ФЛОУСТАТ — WebGL Background для Tilda
-  Вставь весь код в блок «HTML» на Tilda.
-  В настройках блока задай высоту секции (например 100vh).
+  Инструкция:
+  1. Вставь блок «HTML» (раздел «Другое») самым первым на странице
+  2. В настройках блока поставь высоту 0px и сними галку «Отступы»
+  3. В настройках СЕКЦИИ поставь фон: прозрачный (transparent / none)
 -->
 <style>
   #fs-canvas {
     display: block;
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
     pointer-events: none;
   }
   #fs-overlay {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0,0,0,0.30);
-    z-index: -1;
+    z-index: 1;
     pointer-events: none;
   }
   #fs-grain {
     position: fixed;
-    inset: 0;
-    z-index: -1;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2;
     pointer-events: none;
     opacity: 0.08;
     mix-blend-mode: overlay;
