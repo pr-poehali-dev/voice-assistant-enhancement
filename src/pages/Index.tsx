@@ -281,21 +281,21 @@ export default function Index() {
               <div className="inline-flex items-center gap-6 rounded-2xl border border-white/15 bg-white/8 px-6 py-4 backdrop-blur-md">
                 <div className="text-center">
                   <div className="font-mono text-2xl font-semibold text-white">84%</div>
-                  <div className="font-mono text-xs text-white/60">Видимость в ChatGPT</div>
+                  <div className="font-mono text-xs text-white/60">Видимость в Алиса AI</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-emerald-300">↑ 23%</div>
+                  <div className="font-mono text-2xl font-semibold text-emerald-300">↑ 9%</div>
                   <div className="font-mono text-xs text-white/60">За 30 дней</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-white">12</div>
+                  <div className="font-mono text-2xl font-semibold text-white">5</div>
                   <div className="font-mono text-xs text-white/60">LLM-платформ</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-amber-300">3</div>
+                  <div className="font-mono text-2xl font-semibold text-amber-300">12</div>
                   <div className="font-mono text-xs text-white/60">Конкурента</div>
                 </div>
               </div>
