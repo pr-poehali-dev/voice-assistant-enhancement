@@ -278,10 +278,8 @@
   var lastMouseTime = Date.now();
 
   window.addEventListener('mousemove', function(e) {
-    // pointer.x/y в пакете = нормализованные экранные координаты [0..1]
-    // Y не инвертируется в Three.js pointer (0=верх)
-    ptrX = e.clientX / window.innerWidth;
-    ptrY = e.clientY / window.innerHeight;  // 0=верх, как в Three.js
+    ptrX =       e.clientX / window.innerWidth;
+    ptrY = 1.0 - e.clientY / window.innerHeight; // инверт Y: UV 0=низ, экран 0=верх
   });
 
   // ────────────────────────────────────────────────────────────────
