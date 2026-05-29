@@ -219,8 +219,13 @@ export default function Index() {
           onClick={() => scrollToSection(0)}
           className="flex items-center gap-2 transition-transform hover:scale-105"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white/25">
-            <span className="font-sans text-xl font-bold text-white">Ф</span>
+          <div className="flex h-10 w-10 items-center justify-center transition-all duration-300 hover:scale-110">
+            <img
+              src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/e394937d-b04d-40db-ba38-2e00052747d0.png"
+              alt="Флоустат"
+              className="h-9 w-9 object-contain"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
           </div>
           <span className="font-sans text-xl font-semibold tracking-tight text-white">Флоустат</span>
         </button>
