@@ -1,7 +1,7 @@
 <!--
   ФЛОУСТАТ — WebGL Background для Tilda
   Вставь весь код в блок «HTML» на Tilda.
-  В настройках блока задай высоту секции (например 100vh).
+  В настройках блока задай высоту (например 100vh).
 -->
 <style>
   #fs-canvas {
@@ -43,6 +43,7 @@
          || canvas.getContext('experimental-webgl', { antialias: false, alpha: false });
   if (!gl) return;
 
+  // ── Размер ──
   var W = 1, H = 1;
   function resize() {
     var p = canvas.parentElement;
@@ -54,84 +55,138 @@
   }
   window.addEventListener('resize', resize);
 
-  var VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}';
-
-  var FS = [
-  'precision highp float;',
-  'uniform float u_t;',
-  'uniform vec2  u_r;',
-  'uniform vec2  u_m;',    /* сглаженная позиция мыши 0..1          */
-  'uniform float u_mom;',  /* сглаженный импульс 0..1, без скачков  */
-
-  /* Simplex 3D noise */
-  'vec3 p3(vec3 x){return x-floor(x*(1./289.))*289.;}',
-  'vec4 p4(vec4 x){return x-floor(x*(1./289.))*289.;}',
-  'vec4 pm(vec4 x){return p4(((x*34.)+1.)*x);}',
-  'vec4 ti(vec4 r){return 1.79284291400159-0.85373472095314*r;}',
-  'float sn3(vec3 v){',
-  '  const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);',
-  '  vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);',
-  '  vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;',
-  '  vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);',
-  '  vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;',
-  '  i=p3(i);',
-  '  vec4 pp=pm(pm(pm(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));',
-  '  vec3 ns=.142857142857*D.wyz-D.xzx;',
-  '  vec4 j=pp-49.*floor(pp*ns.z*ns.z);',
-  '  vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);',
-  '  vec4 xs=x_*ns.x+ns.yyyy;vec4 ys=y_*ns.x+ns.yyyy;',
-  '  vec4 h=1.-abs(xs)-abs(ys);',
-  '  vec4 b0=vec4(xs.xy,ys.xy);vec4 b1=vec4(xs.zw,ys.zw);',
-  '  vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;',
-  '  vec4 sh=-step(h,vec4(0.));',
-  '  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;',
-  '  vec3 q0=vec3(a0.xy,h.x);vec3 q1=vec3(a0.zw,h.y);',
-  '  vec3 q2=vec3(a1.xy,h.z);vec3 q3=vec3(a1.zw,h.w);',
-  '  vec4 norm=ti(vec4(dot(q0,q0),dot(q1,q1),dot(q2,q2),dot(q3,q3)));',
-  '  q0*=norm.x;q1*=norm.y;q2*=norm.z;q3*=norm.w;',
-  '  vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);',
-  '  m=m*m;return 42.*dot(m*m,vec4(dot(q0,x0),dot(q1,x1),dot(q2,x2),dot(q3,x3)));',
-  '}',
-
-  /* fBm 5 октав */
-  'float fbm(vec3 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*sn3(p);p=p*2.1+vec3(1.7,9.2,3.4);a*=.5;}return v;}',
-
-  /* ChromaFlow: цвет по направлению вектора */
-  'vec3 cf(vec2 d){',
-  '  vec3 base=vec3(.118,.251,.686);',   /* #1e40af */
-  '  vec3 cu  =vec3(.231,.510,.965);',   /* #3b82f6 */
-  '  vec3 cd  =vec3(.118,.227,.373);',   /* #1e3a5f */
-  '  vec3 cl  =vec3(.059,.176,.369);',   /* #0f2d5e */
-  '  vec3 cr  =vec3(.145,.388,.922);',   /* #2563eb */
-  '  return base+clamp(d.x,0.,1.)*cu+clamp(-d.x,0.,1.)*cd+clamp(d.y,0.,1.)*cr+clamp(-d.y,0.,1.)*cl;',
-  '}',
-
-  'void main(){',
-  '  vec2 uv=gl_FragCoord.xy/u_r;',
-  '  float ar=u_r.x/u_r.y;',
-  '  vec2 p=uv*vec2(ar,1.);',
-
-  /* SWIRL: speed=0.5 — время уже замедлено в JS до ~0.016/кадр */
-  '  float n1=fbm(vec3(p*1.08, u_t));',
-  '  float n2=fbm(vec3(p*0.81+vec2(n1*.6,n1*.6), u_t*0.7+4.3));',
-  '  float sw=clamp(n2*.5+.5,0.,1.);',
-  '  vec3 col=mix(vec3(.102,.310,.839),vec3(.231,.510,.965),sw*0.60);',
-
-  /* CHROMAFLOW: radius=1.6 intensity=0.85
-     u_mom уже сглажен снаружи — нет скачков → нет мерцания */
-  '  vec2 mp=u_m*vec2(ar,1.);',
-  '  float dist=length(p-mp);',
-  '  float infl=exp(-dist*(1./1.6))*0.85;',
-  '  vec2 dir=normalize(p-mp+.0001)*infl*u_mom;',
-  '  col=clamp(col+cf(dir)*infl*0.96,0.,1.);',
-  '  gl_FragColor=vec4(col,1.);',
-  '}',
+  // ────────────────────────────────────────────────────────────────
+  // VERTEX SHADER
+  // ────────────────────────────────────────────────────────────────
+  var VS = [
+    'attribute vec2 a;',
+    'varying vec2 vUv;',
+    'void main(){',
+    '  vUv = a * 0.5 + 0.5;',
+    '  gl_Position = vec4(a, 0, 1);',
+    '}'
   ].join('\n');
 
+  // ────────────────────────────────────────────────────────────────
+  // FRAGMENT SHADER
+  // Swirl: три частоты, distortion, shimmer — точно как в shaders/react
+  // ChromaFlow: 5 цветов по направлению потока из CPU-текстуры
+  // ────────────────────────────────────────────────────────────────
+  var FS = [
+    'precision highp float;',
+    'varying vec2 vUv;',
+    'uniform float u_t;',
+    'uniform vec2  u_res;',
+    'uniform sampler2D u_liq;',
+
+    // ── SWIRL ──
+    'vec3 swirl(vec2 uv, float t){',
+    '  float d = 0.6;',
+
+    // freq1 = detail
+    '  float f1 = d;',
+    '  vec2 dUv1 = vec2(',
+    '    uv.x + sin(uv.y*f1*1.7 + t*0.8)*0.12 + cos(uv.x*f1*0.9 - t*0.5)*0.05,',
+    '    uv.y + cos(uv.x*f1*1.3 - t*0.6)*0.12 + sin(uv.y*f1*1.1 + t*0.7)*0.05',
+    '  );',
+    '  float p1 = sin(dUv1.x*f1*2.1 + dUv1.y*f1*1.8 + t*0.4);',
+
+    // freq2 = detail * 2.1
+    '  float f2 = d * 2.1;',
+    '  vec2 dUv2 = vec2(',
+    '    uv.x + sin(uv.y*f2*1.4 - t*0.7)*0.08 + cos(uv.x*f2*1.1 + t*0.4)*0.04,',
+    '    uv.y + cos(uv.x*f2*1.6 + t*0.5)*0.08 + sin(uv.y*f2*0.9 - t*0.6)*0.04',
+    '  );',
+    '  float p2 = cos(dUv2.x*f2*1.8 + dUv2.y*f2*2.1 - t*0.3);',
+
+    // freq3 = detail * 3.7
+    '  float f3 = d * 3.7;',
+    '  vec2 dUv3 = vec2(',
+    '    uv.x + sin(uv.y*f3*1.2 + t*0.9)*0.05 + cos(uv.x*f3*1.4 - t*0.3)*0.03,',
+    '    uv.y + cos(uv.x*f3*1.8 - t*0.8)*0.05 + sin(uv.y*f3*1.3 + t*0.5)*0.03',
+    '  );',
+    '  float p3 = sin(dUv3.x*f3*2.3 + dUv3.y*f3*1.6 + t*0.5);',
+
+    '  float combined = p1*0.45 + p2*0.35 + p3*0.20;',
+
+    // blend=60 → blendBias=(60-50)*0.006=0.06
+    '  float bf = smoothstep(0.3, 0.7, combined*0.5 + 0.5 + 0.06);',
+
+    // colorA=#1a4fd6  colorB=#3b82f6
+    '  vec3 cA = vec3(0.102, 0.310, 0.839);',
+    '  vec3 cB = vec3(0.231, 0.510, 0.965);',
+    '  vec3 col = mix(cA, cB, bf);',
+
+    // shimmer: sin(t*2.5 + pattern*8)*0.015 + 1
+    '  float shimmer = sin(t*2.5 + combined*8.0)*0.015 + 1.0;',
+    '  return col * shimmer;',
+    '}',
+
+    // ── CHROMAFLOW: читаем поле жидкости из текстуры ──
+    'vec3 chromaFlow(vec2 uv){',
+    '  float px = 1.0 / 128.0;',
+    '  vec2 c  = texture2D(u_liq, uv                   ).xy;',
+    '  vec2 r  = texture2D(u_liq, uv + vec2( px,  0.0) ).xy;',
+    '  vec2 u2 = texture2D(u_liq, uv + vec2(0.0,  px)  ).xy;',
+    '  vec2 lv = texture2D(u_liq, uv + vec2(-px,  0.0) ).xy;',
+    '  vec2 dv = texture2D(u_liq, uv + vec2(0.0, -px)  ).xy;',
+    '  vec2 flow = (c + r + u2 + lv + dv) * 0.2;',
+
+    '  float mag = sqrt(flow.x*flow.x + flow.y*flow.y);',
+    '  float hasFlow = smoothstep(0.01, 0.1, mag);',
+    '  float eps = 0.001;',
+    '  float nx = flow.x / (mag + eps);',
+    '  float ny = flow.y / (mag + eps);',
+
+    '  float rAmt = smoothstep(0.0, 0.7, max( nx, 0.0));',
+    '  float lAmt = smoothstep(0.0, 0.7, max(-nx, 0.0));',
+    '  float uAmt = smoothstep(0.0, 0.7, max( ny, 0.0));',
+    '  float dAmt = smoothstep(0.0, 0.7, max(-ny, 0.0));',
+
+    // base=#1e40af  up=#3b82f6  down=#1e3a5f  left=#0f2d5e  right=#2563eb
+    '  vec3 base  = vec3(0.118, 0.251, 0.686);',
+    '  vec3 cup   = vec3(0.231, 0.510, 0.965);',
+    '  vec3 cdown = vec3(0.118, 0.227, 0.373);',
+    '  vec3 cleft = vec3(0.059, 0.176, 0.369);',
+    '  vec3 cright= vec3(0.145, 0.388, 0.922);',
+
+    '  float hw = lAmt + rAmt + eps;',
+    '  float vw = uAmt + dAmt + eps;',
+    '  float tw = hw + vw;',
+    '  vec3 hCol = cleft*lAmt + cright*rAmt;',
+    '  vec3 vCol = cdown*dAmt + cup*uAmt;',
+    '  vec3 dirCol = hCol*(hw/tw) + vCol*(vw/tw);',
+    '  return mix(base, dirCol, hasFlow);',
+    '}',
+
+    // ── liquid density для alpha-mask (maskType=alpha) ──
+    'float liquidAlpha(vec2 uv){',
+    '  float px = 1.0 / 128.0;',
+    '  float c  = texture2D(u_liq, uv                   ).x;',
+    '  float r  = texture2D(u_liq, uv + vec2( px,  0.0) ).x;',
+    '  float u2 = texture2D(u_liq, uv + vec2(0.0,  px)  ).x;',
+    '  float lv = texture2D(u_liq, uv + vec2(-px,  0.0) ).x;',
+    '  float dv = texture2D(u_liq, uv + vec2(0.0, -px)  ).x;',
+    '  return smoothstep(0.0, 0.1, (c+r+u2+lv+dv)*0.2);',
+    '}',
+
+    'void main(){',
+    '  vec3 s  = swirl(vUv, u_t);',
+    '  vec3 cf = chromaFlow(vUv);',
+    '  float la = liquidAlpha(vUv);',
+    // opacity=0.96
+    '  vec3 col = mix(s, cf, la * 0.96);',
+    '  gl_FragColor = vec4(col, 1.0);',
+    '}'
+  ].join('\n');
+
+  // ── Compile & Link ──
   function mkShader(type, src) {
     var s = gl.createShader(type);
     gl.shaderSource(s, src);
     gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+      console.error('Shader error:', gl.getShaderInfoLog(s));
     return s;
   }
   var prog = gl.createProgram();
@@ -140,71 +195,205 @@
   gl.linkProgram(prog);
   gl.useProgram(prog);
 
-  var buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  var vBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vBuf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
   var aLoc = gl.getAttribLocation(prog, 'a');
   gl.enableVertexAttribArray(aLoc);
   gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
 
   var uT   = gl.getUniformLocation(prog, 'u_t');
-  var uR   = gl.getUniformLocation(prog, 'u_r');
-  var uM   = gl.getUniformLocation(prog, 'u_m');
-  var uMom = gl.getUniformLocation(prog, 'u_mom');
+  var uRes = gl.getUniformLocation(prog, 'u_res');
+  var uLiq = gl.getUniformLocation(prog, 'u_liq');
 
-  /* ── Мышь ──
-     Два уровня сглаживания, чтобы убрать мерцание:
-     1. targetMouse → mouse с lerp 0.05 (как в React-проекте, momentum=20)
-     2. mom — сглаженный импульс с lerp 0.06 и затуханием 0.94
-        Никаких Math.sqrt(dx*dx+...) — только плавное накопление
-  */
-  var mouse  = { x: 0.5, y: 0.5 };
-  var target = { x: 0.5, y: 0.5 };
-  var mom    = 0.0;   /* сглаженный импульс — передаётся в шейдер */
-  var rawMom = 0.0;   /* сырой импульс от движения мыши           */
+  // ────────────────────────────────────────────────────────────────
+  // CPU LIQUID SIMULATION — точная копия ChromaFlow из пакета
+  // 128×128 grid, 2 float на ячейку: [dispX, dispY] и [density, _]
+  // ────────────────────────────────────────────────────────────────
+  var GRID = 128;
+  var N2   = GRID * GRID;
+
+  var disp    = new Float32Array(N2 * 2);  // поле скоростей/displacement
+  var liq     = new Float32Array(N2 * 2);  // плотность жидкости (.x)
+  var tmpDisp = new Float32Array(N2 * 2);
+  var tmpLiq  = new Float32Array(N2 * 2);
+
+  // Текстура: RG (flow.x, flow.y) — но нам нужно и density в .x
+  // Используем LUMINANCE_ALPHA: .r=density, .g=dispX, но WebGL1 не даёт RG32F без расширения
+  // Решение: используем RGBA float если есть, иначе упаковываем в RGBA UNSIGNED_BYTE
+  var floatExt = gl.getExtension('OES_texture_float');
+  gl.getExtension('OES_texture_float_linear');
+
+  // Создаём текстуру RGBA — пишем: r=density, g=dispX, b=dispY, a=1
+  var liqTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, liqTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+  // Инициализация нулями
+  if (floatExt) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT,
+                  new Float32Array(N2 * 4));
+  } else {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  new Uint8Array(N2 * 4));
+  }
+
+  // Буфер для загрузки в текстуру
+  var texBuf = floatExt ? new Float32Array(N2 * 4) : new Uint8Array(N2 * 4);
+
+  function uploadTexture() {
+    for (var i = 0; i < N2; i++) {
+      var density = liq[i * 2];
+      var dx      = disp[i * 2];
+      var dy      = disp[i * 2 + 1];
+      if (floatExt) {
+        texBuf[i*4]   = density;
+        texBuf[i*4+1] = dx;
+        texBuf[i*4+2] = dy;
+        texBuf[i*4+3] = 1.0;
+      } else {
+        // pack [-1..1] → [0..255] for disp, [0..1] → [0..255] for density
+        texBuf[i*4]   = Math.min(255, Math.max(0, density * 255));
+        texBuf[i*4+1] = Math.min(255, Math.max(0, (dx * 0.5 + 0.5) * 255));
+        texBuf[i*4+2] = Math.min(255, Math.max(0, (dy * 0.5 + 0.5) * 255));
+        texBuf[i*4+3] = 255;
+      }
+    }
+    gl.bindTexture(gl.TEXTURE_2D, liqTex);
+    if (floatExt) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT, texBuf);
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, texBuf);
+    }
+  }
+
+  // Шейдер читает .xy из текстуры.
+  // При float: .x=density, .y=dispX — нам нужно передать flow vector в .xy
+  // Перепишем uploadTexture: .r=dispX, .g=dispY, .b=density
+  // И поправим шейдер — он читает .xy как flow и .x как density
+  // Формат: r=dispX, g=dispY, b=density, a=1
+  function uploadTexture2() {
+    for (var i = 0; i < N2; i++) {
+      var den = liq[i * 2];
+      var fx  = disp[i * 2];
+      var fy  = disp[i * 2 + 1];
+      if (floatExt) {
+        texBuf[i*4]   = fx;    // .r → flow.x (dispX)
+        texBuf[i*4+1] = fy;    // .g → flow.y (dispY)
+        texBuf[i*4+2] = den;   // .b → density
+        texBuf[i*4+3] = 1.0;
+      } else {
+        texBuf[i*4]   = Math.min(255, Math.max(0, (fx  * 0.5 + 0.5) * 255));
+        texBuf[i*4+1] = Math.min(255, Math.max(0, (fy  * 0.5 + 0.5) * 255));
+        texBuf[i*4+2] = Math.min(255, Math.max(0, den  * 255));
+        texBuf[i*4+3] = 255;
+      }
+    }
+    gl.bindTexture(gl.TEXTURE_2D, liqTex);
+    if (floatExt) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT, texBuf);
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, texBuf);
+    }
+  }
+
+  // Мышь
+  var mouseX = 0.5, mouseY = 0.5;
+  var prevMX = 0.5, prevMY = 0.5;
+  var velX = 0, velY = 0;
 
   window.addEventListener('mousemove', function(e) {
-    var nx = e.clientX / window.innerWidth;
-    var ny = 1.0 - e.clientY / window.innerHeight;
-    /* накапливаем сырой импульс как дистанцию перемещения */
-    var dx = nx - target.x, dy = ny - target.y;
-    rawMom = Math.min(1.0, Math.sqrt(dx*dx + dy*dy) * 8);
-    target.x = nx;
-    target.y = ny;
+    var rect = canvas.getBoundingClientRect();
+    var nx = (e.clientX - rect.left) / rect.width;
+    var ny = 1.0 - (e.clientY - rect.top)  / rect.height;
+    mouseX = Math.max(0, Math.min(1, nx));
+    mouseY = Math.max(0, Math.min(1, ny));
   });
 
-  /* ── Время ──
-     Считаем dt вручную и ограничиваем 60 fps.
-     Умножаем на speed=0.5 — фон движется ТОЧНО как в React.
-     Это исключает рывки при потере фокуса/разворачивании вкладки.
-  */
-  var t       = 0;
+  function simulate(dt) {
+    var simDt = Math.min(dt, 0.016);
+
+    // Сглаженная скорость мыши — точно как в пакете: lerp(vel, raw, 0.15)
+    var rawVX = simDt > 0 ? (mouseX - prevMX) / simDt : 0;
+    var rawVY = simDt > 0 ? (mouseY - prevMY) / simDt : 0;
+    velX = velX * 0.85 + rawVX * 0.15;
+    velY = velY * 0.85 + rawVY * 0.15;
+    prevMX = mouseX;
+    prevMY = mouseY;
+
+    // intensity=0.85, radius=1.6*0.05=0.08, momentum=20
+    var intensity = 0.85;
+    var radius    = 1.6 * 0.05;
+    var momentum  = 20;
+
+    // Затухание displacement: flowFadeRate = 1 - dt/max(0.1,1)
+    var flowFade = 1.0 - simDt / 1.0;
+    for (var i = 0; i < N2 * 2; i++) tmpDisp[i] = disp[i] * flowFade;
+
+    // Затухание жидкости: liquidFadeRate = 1 - dt/max(0.4,1)
+    var liqFade = 1.0 - simDt / Math.max(0.4, 1.0);
+
+    for (var row = 0; row < GRID; row++) {
+      for (var col = 0; col < GRID; col++) {
+        var idx = (row * GRID + col) * 2;
+        var gx  = col / (GRID - 1);
+        var gy  = row / (GRID - 1);
+
+        tmpLiq[idx]     = liq[idx]     * liqFade;
+        tmpLiq[idx + 1] = liq[idx + 1] * liqFade;
+
+        var dx2  = gx - mouseX;
+        var dy2  = gy - mouseY;
+        var dist = Math.sqrt(dx2*dx2 + dy2*dy2);
+
+        if (dist < radius * 4) {
+          var infl = Math.exp(-(dist*dist) / (2*radius*radius)) * intensity;
+
+          tmpDisp[idx]     += velX * infl * simDt * momentum;
+          tmpDisp[idx + 1] += velY * infl * simDt * momentum;
+          tmpLiq[idx]      += infl * simDt * momentum * 0.5;
+        }
+
+        // Диффузия для плавности
+        if (row > 0 && row < GRID-1 && col > 0 && col < GRID-1) {
+          var ni = ((row+1)*GRID + col)    * 2;
+          var si = ((row-1)*GRID + col)    * 2;
+          var ei = (row*GRID + col+1)      * 2;
+          var wi = (row*GRID + col-1)      * 2;
+          var diff = 0.04 * simDt * 60;
+          tmpLiq[idx]      += (liq[ni]   + liq[si]   + liq[ei]   + liq[wi]   - 4*liq[idx])   * diff;
+          tmpDisp[idx]     += (disp[ni]  + disp[si]  + disp[ei]  + disp[wi]  - 4*disp[idx])  * diff * 0.5;
+          tmpDisp[idx+1]   += (disp[ni+1]+ disp[si+1]+ disp[ei+1]+ disp[wi+1]- 4*disp[idx+1])* diff * 0.5;
+        }
+      }
+    }
+
+    disp.set(tmpDisp);
+    liq.set(tmpLiq);
+  }
+
+  // ── Render loop ──
   var lastNow = performance.now();
+  var simTime = 0;
 
   function frame(now) {
-    /* dt в секундах, зажат до 1/30 — нет скачков при смене вкладки */
     var dt = Math.min((now - lastNow) * 0.001, 1/30);
     lastNow = now;
+    simTime += dt * 0.5;  // speed=0.5
 
-    /* speed = 0.5 */
-    t += dt * 0.5;
+    simulate(dt);
+    uploadTexture2();
 
-    /* сглаживание позиции мыши: lerp 0.05 = 1/momentum(20) */
-    mouse.x += (target.x - mouse.x) * 0.05;
-    mouse.y += (target.y - mouse.y) * 0.05;
-
-    /* двойное сглаживание импульса:
-       rawMom → mom с lerp 0.06, затем затухание 0.94
-       Это убирает резкие скачки → нет мерцания */
-    mom += (rawMom - mom) * 0.06;
-    mom *= 0.94;
-    rawMom *= 0.85;
-
-    gl.uniform1f(uT,   t);
-    gl.uniform2f(uR,   W, H);
-    gl.uniform2f(uM,   mouse.x, mouse.y);
-    gl.uniform1f(uMom, mom);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, liqTex);
+    gl.uniform1i(uLiq, 0);
+    gl.uniform1f(uT,   simTime);
+    gl.uniform2f(uRes, W, H);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
     requestAnimationFrame(frame);
   }
 
