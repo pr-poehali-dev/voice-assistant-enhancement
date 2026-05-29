@@ -1,7 +1,7 @@
 <!--
   ФЛОУСТАТ — WebGL Background для Tilda
   Вставь весь код в блок «HTML» на Tilda.
-  В настройках блока задай высоту (например 100vh).
+  В настройках блока задай высоту секции (например 100vh).
 -->
 <style>
   #fs-canvas {
@@ -43,7 +43,13 @@
          || canvas.getContext('experimental-webgl', { antialias: false, alpha: false });
   if (!gl) return;
 
-  // ── Размер ──
+  // ── OES_texture_float обязателен для ChromaFlow ──
+  var floatExt = gl.getExtension('OES_texture_float');
+  gl.getExtension('OES_texture_float_linear');
+  if (!floatExt) {
+    console.warn('OES_texture_float not supported — ChromaFlow disabled');
+  }
+
   var W = 1, H = 1;
   function resize() {
     var p = canvas.parentElement;
@@ -63,130 +69,123 @@
     'varying vec2 vUv;',
     'void main(){',
     '  vUv = a * 0.5 + 0.5;',
-    '  gl_Position = vec4(a, 0, 1);',
+    '  gl_Position = vec4(a, 0.0, 1.0);',
     '}'
   ].join('\n');
 
   // ────────────────────────────────────────────────────────────────
   // FRAGMENT SHADER
-  // Swirl: три частоты, distortion, shimmer — точно как в shaders/react
-  // ChromaFlow: 5 цветов по направлению потока из CPU-текстуры
+  // u_disp — RG32F 128×128: displacement vectors (x,y)
+  // u_liq  — RG32F 128×128: liquid density in .r
   // ────────────────────────────────────────────────────────────────
   var FS = [
     'precision highp float;',
     'varying vec2 vUv;',
     'uniform float u_t;',
-    'uniform vec2  u_res;',
-    'uniform sampler2D u_liq;',
+    'uniform sampler2D u_disp;',   // displacement field
+    'uniform sampler2D u_liq;',    // liquid density
 
-    // ── SWIRL ──
+    // ── SWIRL — точная копия shaders/react <Swirl> ──
+    // три частоты, distortion через sin/cos, shimmer
     'vec3 swirl(vec2 uv, float t){',
-    '  float d = 0.6;',
+    '  float d = 0.6;',            // detail=0.6
 
     // freq1 = detail
-    '  float f1 = d;',
-    '  vec2 dUv1 = vec2(',
-    '    uv.x + sin(uv.y*f1*1.7 + t*0.8)*0.12 + cos(uv.x*f1*0.9 - t*0.5)*0.05,',
-    '    uv.y + cos(uv.x*f1*1.3 - t*0.6)*0.12 + sin(uv.y*f1*1.1 + t*0.7)*0.05',
-    '  );',
-    '  float p1 = sin(dUv1.x*f1*2.1 + dUv1.y*f1*1.8 + t*0.4);',
+    '  float f1=d;',
+    '  vec2 d1=vec2(',
+    '    uv.x+sin(uv.y*f1*1.7+t*0.8)*0.12+cos(uv.x*f1*0.9-t*0.5)*0.05,',
+    '    uv.y+cos(uv.x*f1*1.3-t*0.6)*0.12+sin(uv.y*f1*1.1+t*0.7)*0.05);',
+    '  float p1=sin(d1.x*f1*2.1+d1.y*f1*1.8+t*0.4);',
 
-    // freq2 = detail * 2.1
-    '  float f2 = d * 2.1;',
-    '  vec2 dUv2 = vec2(',
-    '    uv.x + sin(uv.y*f2*1.4 - t*0.7)*0.08 + cos(uv.x*f2*1.1 + t*0.4)*0.04,',
-    '    uv.y + cos(uv.x*f2*1.6 + t*0.5)*0.08 + sin(uv.y*f2*0.9 - t*0.6)*0.04',
-    '  );',
-    '  float p2 = cos(dUv2.x*f2*1.8 + dUv2.y*f2*2.1 - t*0.3);',
+    // freq2 = detail*2.1
+    '  float f2=d*2.1;',
+    '  vec2 d2=vec2(',
+    '    uv.x+sin(uv.y*f2*1.4-t*0.7)*0.08+cos(uv.x*f2*1.1+t*0.4)*0.04,',
+    '    uv.y+cos(uv.x*f2*1.6+t*0.5)*0.08+sin(uv.y*f2*0.9-t*0.6)*0.04);',
+    '  float p2=cos(d2.x*f2*1.8+d2.y*f2*2.1-t*0.3);',
 
-    // freq3 = detail * 3.7
-    '  float f3 = d * 3.7;',
-    '  vec2 dUv3 = vec2(',
-    '    uv.x + sin(uv.y*f3*1.2 + t*0.9)*0.05 + cos(uv.x*f3*1.4 - t*0.3)*0.03,',
-    '    uv.y + cos(uv.x*f3*1.8 - t*0.8)*0.05 + sin(uv.y*f3*1.3 + t*0.5)*0.03',
-    '  );',
-    '  float p3 = sin(dUv3.x*f3*2.3 + dUv3.y*f3*1.6 + t*0.5);',
+    // freq3 = detail*3.7
+    '  float f3=d*3.7;',
+    '  vec2 d3=vec2(',
+    '    uv.x+sin(uv.y*f3*1.2+t*0.9)*0.05+cos(uv.x*f3*1.4-t*0.3)*0.03,',
+    '    uv.y+cos(uv.x*f3*1.8-t*0.8)*0.05+sin(uv.y*f3*1.3+t*0.5)*0.03);',
+    '  float p3=sin(d3.x*f3*2.3+d3.y*f3*1.6+t*0.5);',
 
-    '  float combined = p1*0.45 + p2*0.35 + p3*0.20;',
-
+    '  float combined=p1*0.45+p2*0.35+p3*0.20;',
     // blend=60 → blendBias=(60-50)*0.006=0.06
-    '  float bf = smoothstep(0.3, 0.7, combined*0.5 + 0.5 + 0.06);',
-
+    '  float bf=smoothstep(0.3,0.7,combined*0.5+0.5+0.06);',
     // colorA=#1a4fd6  colorB=#3b82f6
-    '  vec3 cA = vec3(0.102, 0.310, 0.839);',
-    '  vec3 cB = vec3(0.231, 0.510, 0.965);',
-    '  vec3 col = mix(cA, cB, bf);',
-
-    // shimmer: sin(t*2.5 + pattern*8)*0.015 + 1
-    '  float shimmer = sin(t*2.5 + combined*8.0)*0.015 + 1.0;',
-    '  return col * shimmer;',
+    '  vec3 cA=vec3(0.102,0.310,0.839);',
+    '  vec3 cB=vec3(0.231,0.510,0.965);',
+    '  vec3 col=mix(cA,cB,bf);',
+    // shimmer: sin(t*2.5+pattern*8)*0.015+1
+    '  return col*(sin(t*2.5+combined*8.0)*0.015+1.0);',
     '}',
 
-    // ── CHROMAFLOW: читаем поле жидкости из текстуры ──
-    'vec3 chromaFlow(vec2 uv){',
-    '  float px = 1.0 / 128.0;',
-    '  vec2 c  = texture2D(u_liq, uv                   ).xy;',
-    '  vec2 r  = texture2D(u_liq, uv + vec2( px,  0.0) ).xy;',
-    '  vec2 u2 = texture2D(u_liq, uv + vec2(0.0,  px)  ).xy;',
-    '  vec2 lv = texture2D(u_liq, uv + vec2(-px,  0.0) ).xy;',
-    '  vec2 dv = texture2D(u_liq, uv + vec2(0.0, -px)  ).xy;',
-    '  vec2 flow = (c + r + u2 + lv + dv) * 0.2;',
+    // ── CHROMAFLOW — точная копия логики шейдерной части ──
+    // liquidDensity из u_liq, flowVectors из u_disp
+    // оба усредняются по 5 сэмплам (center + 4 neighbours)
+    'void main(){',
+    '  float px=1.0/128.0;',
 
-    '  float mag = sqrt(flow.x*flow.x + flow.y*flow.y);',
-    '  float hasFlow = smoothstep(0.01, 0.1, mag);',
-    '  float eps = 0.001;',
-    '  float nx = flow.x / (mag + eps);',
-    '  float ny = flow.y / (mag + eps);',
+    // liquid density — smoothedLiquid = avg(center, +x, +y, -x, -y) * 0.2
+    '  float ld =texture2D(u_liq, vUv              ).r;',
+    '  float ld1=texture2D(u_liq, vUv+vec2( px,0.) ).r;',
+    '  float ld2=texture2D(u_liq, vUv+vec2(0., px) ).r;',
+    '  float ld3=texture2D(u_liq, vUv+vec2(-px,0.) ).r;',
+    '  float ld4=texture2D(u_liq, vUv+vec2(0.,-px) ).r;',
+    '  float smoothLiq=(ld+ld1+ld2+ld3+ld4)*0.2;',
+    '  float liquidIntensity=smoothstep(0.0,0.1,smoothLiq);',
 
-    '  float rAmt = smoothstep(0.0, 0.7, max( nx, 0.0));',
-    '  float lAmt = smoothstep(0.0, 0.7, max(-nx, 0.0));',
-    '  float uAmt = smoothstep(0.0, 0.7, max( ny, 0.0));',
-    '  float dAmt = smoothstep(0.0, 0.7, max(-ny, 0.0));',
+    // displacement flowVectors = avg(center, +x, +y, -x, -y) * 0.2
+    '  vec2 fv =texture2D(u_disp, vUv              ).rg;',
+    '  vec2 fv1=texture2D(u_disp, vUv+vec2( px,0.) ).rg;',
+    '  vec2 fv2=texture2D(u_disp, vUv+vec2(0., px) ).rg;',
+    '  vec2 fv3=texture2D(u_disp, vUv+vec2(-px,0.) ).rg;',
+    '  vec2 fv4=texture2D(u_disp, vUv+vec2(0.,-px) ).rg;',
+    '  vec2 flow=(fv+fv1+fv2+fv3+fv4)*0.2;',
+
+    // flowMagnitude, hasFlow, normalized direction
+    '  float mag=sqrt(flow.x*flow.x+flow.y*flow.y);',
+    '  float hasFlow=smoothstep(0.01,0.1,mag);',
+    '  float nx=flow.x/(mag+0.001);',
+    '  float ny=flow.y/(mag+0.001);',
+
+    // directional amounts
+    '  float rAmt=smoothstep(0.0,0.7,max( nx,0.0));',
+    '  float lAmt=smoothstep(0.0,0.7,max(-nx,0.0));',
+    '  float uAmt=smoothstep(0.0,0.7,max( ny,0.0));',
+    '  float dAmt=smoothstep(0.0,0.7,max(-ny,0.0));',
 
     // base=#1e40af  up=#3b82f6  down=#1e3a5f  left=#0f2d5e  right=#2563eb
-    '  vec3 base  = vec3(0.118, 0.251, 0.686);',
-    '  vec3 cup   = vec3(0.231, 0.510, 0.965);',
-    '  vec3 cdown = vec3(0.118, 0.227, 0.373);',
-    '  vec3 cleft = vec3(0.059, 0.176, 0.369);',
-    '  vec3 cright= vec3(0.145, 0.388, 0.922);',
+    '  vec3 base =vec3(0.118,0.251,0.686);',
+    '  vec3 cup  =vec3(0.231,0.510,0.965);',
+    '  vec3 cdown=vec3(0.118,0.227,0.373);',
+    '  vec3 cleft=vec3(0.059,0.176,0.369);',
+    '  vec3 cright=vec3(0.145,0.388,0.922);',
 
-    '  float hw = lAmt + rAmt + eps;',
-    '  float vw = uAmt + dAmt + eps;',
-    '  float tw = hw + vw;',
-    '  vec3 hCol = cleft*lAmt + cright*rAmt;',
-    '  vec3 vCol = cdown*dAmt + cup*uAmt;',
-    '  vec3 dirCol = hCol*(hw/tw) + vCol*(vw/tw);',
-    '  return mix(base, dirCol, hasFlow);',
-    '}',
+    '  float hw=lAmt+rAmt;',
+    '  float vw=uAmt+dAmt;',
+    '  float tw=hw+vw+0.001;',
+    '  vec3 hCol=cleft*lAmt+cright*rAmt;',
+    '  vec3 vCol=cdown*dAmt+cup*uAmt;',
+    '  vec3 dirCol=hCol*(hw/tw)+vCol*(vw/tw);',
+    '  vec3 cfCol=mix(base,dirCol,hasFlow);',
 
-    // ── liquid density для alpha-mask (maskType=alpha) ──
-    'float liquidAlpha(vec2 uv){',
-    '  float px = 1.0 / 128.0;',
-    '  float c  = texture2D(u_liq, uv                   ).x;',
-    '  float r  = texture2D(u_liq, uv + vec2( px,  0.0) ).x;',
-    '  float u2 = texture2D(u_liq, uv + vec2(0.0,  px)  ).x;',
-    '  float lv = texture2D(u_liq, uv + vec2(-px,  0.0) ).x;',
-    '  float dv = texture2D(u_liq, uv + vec2(0.0, -px)  ).x;',
-    '  return smoothstep(0.0, 0.1, (c+r+u2+lv+dv)*0.2);',
-    '}',
-
-    'void main(){',
-    '  vec3 s  = swirl(vUv, u_t);',
-    '  vec3 cf = chromaFlow(vUv);',
-    '  float la = liquidAlpha(vUv);',
-    // opacity=0.96
-    '  vec3 col = mix(s, cf, la * 0.96);',
-    '  gl_FragColor = vec4(col, 1.0);',
+    // finalColor = cfCol * liquidIntensity (как в пакете: rgb*liqInt, a*liqInt)
+    // opacity=0.96: mix(swirl, cfCol, liquidIntensity*0.96)
+    '  vec3 s=swirl(vUv,u_t);',
+    '  vec3 col=mix(s, cfCol, liquidIntensity*0.96);',
+    '  gl_FragColor=vec4(col,1.0);',
     '}'
   ].join('\n');
 
-  // ── Compile & Link ──
   function mkShader(type, src) {
     var s = gl.createShader(type);
     gl.shaderSource(s, src);
     gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-      console.error('Shader error:', gl.getShaderInfoLog(s));
+      console.error('Shader:', gl.getShaderInfoLog(s));
     return s;
   }
   var prog = gl.createProgram();
@@ -202,177 +201,193 @@
   gl.enableVertexAttribArray(aLoc);
   gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
 
-  var uT   = gl.getUniformLocation(prog, 'u_t');
-  var uRes = gl.getUniformLocation(prog, 'u_res');
-  var uLiq = gl.getUniformLocation(prog, 'u_liq');
+  var uT    = gl.getUniformLocation(prog, 'u_t');
+  var uDisp = gl.getUniformLocation(prog, 'u_disp');
+  var uLiq  = gl.getUniformLocation(prog, 'u_liq');
 
-  // ────────────────────────────────────────────────────────────────
-  // CPU LIQUID SIMULATION — точная копия ChromaFlow из пакета
-  // 128×128 grid, 2 float на ячейку: [dispX, dispY] и [density, _]
-  // ────────────────────────────────────────────────────────────────
+  // ── Создаём две RG32F текстуры 128×128 ──
   var GRID = 128;
-  var N2   = GRID * GRID;
+  var N    = GRID * GRID;
 
-  var disp    = new Float32Array(N2 * 2);  // поле скоростей/displacement
-  var liq     = new Float32Array(N2 * 2);  // плотность жидкости (.x)
-  var tmpDisp = new Float32Array(N2 * 2);
-  var tmpLiq  = new Float32Array(N2 * 2);
-
-  // Текстура: RG (flow.x, flow.y) — но нам нужно и density в .x
-  // Используем LUMINANCE_ALPHA: .r=density, .g=dispX, но WebGL1 не даёт RG32F без расширения
-  // Решение: используем RGBA float если есть, иначе упаковываем в RGBA UNSIGNED_BYTE
-  var floatExt = gl.getExtension('OES_texture_float');
-  gl.getExtension('OES_texture_float_linear');
-
-  // Создаём текстуру RGBA — пишем: r=density, g=dispX, b=dispY, a=1
-  var liqTex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, liqTex);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-  // Инициализация нулями
-  if (floatExt) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT,
-                  new Float32Array(N2 * 4));
-  } else {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                  new Uint8Array(N2 * 4));
+  function makeTex() {
+    var t2 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t2);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // RG → используем LUMINANCE_ALPHA (r=.r, g=.a в WebGL1)
+    // Но шейдер читает .r и .rg — поэтому используем RGBA float
+    if (floatExt) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0,
+                    gl.RGBA, gl.FLOAT, new Float32Array(N * 4));
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0,
+                    gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(N * 4));
+    }
+    return t2;
   }
 
-  // Буфер для загрузки в текстуру
-  var texBuf = floatExt ? new Float32Array(N2 * 4) : new Uint8Array(N2 * 4);
+  var dispTex = makeTex();
+  var liqTex  = makeTex();
 
-  function uploadTexture() {
-    for (var i = 0; i < N2; i++) {
-      var density = liq[i * 2];
-      var dx      = disp[i * 2];
-      var dy      = disp[i * 2 + 1];
+  // ── CPU-данные (точно как в пакете) ──
+  var dispData     = new Float32Array(N * 2);  // [dx, dy] per cell
+  var liqData      = new Float32Array(N * 2);  // [density, 0] per cell
+  var tmpDisp      = new Float32Array(N * 2);
+  var tmpLiq       = new Float32Array(N * 2);
+
+  // буферы для загрузки в текстуры (RGBA)
+  var dispBuf = floatExt ? new Float32Array(N * 4) : new Uint8Array(N * 4);
+  var liqBuf  = floatExt ? new Float32Array(N * 4) : new Uint8Array(N * 4);
+
+  function uploadTex(tex, buf, data, isDisp) {
+    for (var i = 0; i < N; i++) {
+      var v0 = data[i * 2];      // x (или density)
+      var v1 = data[i * 2 + 1]; // y
       if (floatExt) {
-        texBuf[i*4]   = density;
-        texBuf[i*4+1] = dx;
-        texBuf[i*4+2] = dy;
-        texBuf[i*4+3] = 1.0;
+        buf[i*4]   = v0;
+        buf[i*4+1] = v1;
+        buf[i*4+2] = 0;
+        buf[i*4+3] = 1;
       } else {
-        // pack [-1..1] → [0..255] for disp, [0..1] → [0..255] for density
-        texBuf[i*4]   = Math.min(255, Math.max(0, density * 255));
-        texBuf[i*4+1] = Math.min(255, Math.max(0, (dx * 0.5 + 0.5) * 255));
-        texBuf[i*4+2] = Math.min(255, Math.max(0, (dy * 0.5 + 0.5) * 255));
-        texBuf[i*4+3] = 255;
+        // pack: displacement [-1..1]→[0..255], density [0..1]→[0..255]
+        if (isDisp) {
+          buf[i*4]   = Math.round((v0 * 0.5 + 0.5) * 255);
+          buf[i*4+1] = Math.round((v1 * 0.5 + 0.5) * 255);
+        } else {
+          buf[i*4]   = Math.round(Math.min(1, Math.max(0, v0)) * 255);
+          buf[i*4+1] = 0;
+        }
+        buf[i*4+2] = 0;
+        buf[i*4+3] = 255;
       }
     }
-    gl.bindTexture(gl.TEXTURE_2D, liqTex);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
     if (floatExt) {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT, texBuf);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT, buf);
     } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, texBuf);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, buf);
     }
   }
 
-  // Шейдер читает .xy из текстуры.
-  // При float: .x=density, .y=dispX — нам нужно передать flow vector в .xy
-  // Перепишем uploadTexture: .r=dispX, .g=dispY, .b=density
-  // И поправим шейдер — он читает .xy как flow и .x как density
-  // Формат: r=dispX, g=dispY, b=density, a=1
-  function uploadTexture2() {
-    for (var i = 0; i < N2; i++) {
-      var den = liq[i * 2];
-      var fx  = disp[i * 2];
-      var fy  = disp[i * 2 + 1];
-      if (floatExt) {
-        texBuf[i*4]   = fx;    // .r → flow.x (dispX)
-        texBuf[i*4+1] = fy;    // .g → flow.y (dispY)
-        texBuf[i*4+2] = den;   // .b → density
-        texBuf[i*4+3] = 1.0;
-      } else {
-        texBuf[i*4]   = Math.min(255, Math.max(0, (fx  * 0.5 + 0.5) * 255));
-        texBuf[i*4+1] = Math.min(255, Math.max(0, (fy  * 0.5 + 0.5) * 255));
-        texBuf[i*4+2] = Math.min(255, Math.max(0, den  * 255));
-        texBuf[i*4+3] = 255;
-      }
-    }
-    gl.bindTexture(gl.TEXTURE_2D, liqTex);
-    if (floatExt) {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.FLOAT, texBuf);
-    } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, texBuf);
-    }
-  }
-
-  // Мышь
-  var mouseX = 0.5, mouseY = 0.5;
-  var prevMX = 0.5, prevMY = 0.5;
-  var velX = 0, velY = 0;
+  // ── Мышь ──
+  var ptrX = 0.5, ptrY = 0.5;
+  var prevX = 0.5, prevY = 0.5;
+  var velX = 0, velY = 0;        // сглаженная скорость (как в пакете)
+  var lastMouseTime = Date.now();
 
   window.addEventListener('mousemove', function(e) {
-    var rect = canvas.getBoundingClientRect();
-    var nx = (e.clientX - rect.left) / rect.width;
-    var ny = 1.0 - (e.clientY - rect.top)  / rect.height;
-    mouseX = Math.max(0, Math.min(1, nx));
-    mouseY = Math.max(0, Math.min(1, ny));
+    // pointer.x/y в пакете = нормализованные экранные координаты [0..1]
+    // Y не инвертируется в Three.js pointer (0=верх)
+    ptrX = e.clientX / window.innerWidth;
+    ptrY = e.clientY / window.innerHeight;  // 0=верх, как в Three.js
   });
 
-  function simulate(dt) {
-    var simDt = Math.min(dt, 0.016);
+  // ────────────────────────────────────────────────────────────────
+  // CPU SIMULATION — точная копия onBeforeRender из ChromaFlow пакета
+  // ────────────────────────────────────────────────────────────────
+  function simulate() {
+    var currentTime = Date.now();
+    // dt = min((now - last) / 1000, 0.016) — точно как в пакете
+    var dt = Math.min((currentTime - lastMouseTime) / 1000, 0.016);
+    lastMouseTime = currentTime;
 
-    // Сглаженная скорость мыши — точно как в пакете: lerp(vel, raw, 0.15)
-    var rawVX = simDt > 0 ? (mouseX - prevMX) / simDt : 0;
-    var rawVY = simDt > 0 ? (mouseY - prevMY) / simDt : 0;
+    // скорость мыши: velX = velX*0.85 + raw*0.15 — точно как в пакете
+    var rawVX = dt > 0 ? (ptrX - prevX) / dt : 0;
+    var rawVY = dt > 0 ? (ptrY - prevY) / dt : 0;
     velX = velX * 0.85 + rawVX * 0.15;
     velY = velY * 0.85 + rawVY * 0.15;
-    prevMX = mouseX;
-    prevMY = mouseY;
 
-    // intensity=0.85, radius=1.6*0.05=0.08, momentum=20
+    // параметры: intensity=0.85, radius=1.6*0.05=0.08, momentum=20
     var intensity = 0.85;
     var radius    = 1.6 * 0.05;
     var momentum  = 20;
 
-    // Затухание displacement: flowFadeRate = 1 - dt/max(0.1,1)
-    var flowFade = 1.0 - simDt / 1.0;
-    for (var i = 0; i < N2 * 2; i++) tmpDisp[i] = disp[i] * flowFade;
+    // скорость мыши (magnitude)
+    var speed = Math.sqrt(velX * velX + velY * velY);
 
-    // Затухание жидкости: liquidFadeRate = 1 - dt/max(0.4,1)
-    var liqFade = 1.0 - simDt / Math.max(0.4, 1.0);
+    // 1. Затухание displacement: flowFadeRate = 1 - dt/max(0.1,1)
+    var flowFade = 1 - dt / Math.max(0.1, 1);
+    for (var k = 0; k < N * 2; k++) tmpDisp[k] = dispData[k] * flowFade;
 
-    for (var row = 0; row < GRID; row++) {
-      for (var col = 0; col < GRID; col++) {
-        var idx = (row * GRID + col) * 2;
-        var gx  = col / (GRID - 1);
-        var gy  = row / (GRID - 1);
+    // liquidFadeRate = 1 - dt/max(0.4,1)
+    var liqFade = 1 - dt / Math.max(0.4, 1);
 
-        tmpLiq[idx]     = liq[idx]     * liqFade;
-        tmpLiq[idx + 1] = liq[idx + 1] * liqFade;
+    // 2. Advection + liquid fade (точно как в пакете)
+    for (var i = 0; i < GRID; i++) {
+      for (var j = 0; j < GRID; j++) {
+        var idx = (i * GRID + j) * 2;
 
-        var dx2  = gx - mouseX;
-        var dy2  = gy - mouseY;
-        var dist = Math.sqrt(dx2*dx2 + dy2*dy2);
+        tmpLiq[idx]     = liqData[idx]     * liqFade;
+        tmpLiq[idx + 1] = 0;
 
-        if (dist < radius * 4) {
-          var infl = Math.exp(-(dist*dist) / (2*radius*radius)) * intensity;
-
-          tmpDisp[idx]     += velX * infl * simDt * momentum;
-          tmpDisp[idx + 1] += velY * infl * simDt * momentum;
-          tmpLiq[idx]      += infl * simDt * momentum * 0.5;
-        }
-
-        // Диффузия для плавности
-        if (row > 0 && row < GRID-1 && col > 0 && col < GRID-1) {
-          var ni = ((row+1)*GRID + col)    * 2;
-          var si = ((row-1)*GRID + col)    * 2;
-          var ei = (row*GRID + col+1)      * 2;
-          var wi = (row*GRID + col-1)      * 2;
-          var diff = 0.04 * simDt * 60;
-          tmpLiq[idx]      += (liq[ni]   + liq[si]   + liq[ei]   + liq[wi]   - 4*liq[idx])   * diff;
-          tmpDisp[idx]     += (disp[ni]  + disp[si]  + disp[ei]  + disp[wi]  - 4*disp[idx])  * diff * 0.5;
-          tmpDisp[idx+1]   += (disp[ni+1]+ disp[si+1]+ disp[ei+1]+ disp[wi+1]- 4*disp[idx+1])* diff * 0.5;
+        // advection — перенос жидкости по полю скоростей
+        if (Math.abs(dispData[idx]) > 0.001 || Math.abs(dispData[idx + 1]) > 0.001) {
+          var flowSpeed = momentum * 50 * dt;
+          var advectX = j - dispData[idx]     * flowSpeed;
+          var advectY = i - dispData[idx + 1] * flowSpeed;
+          var x0 = Math.floor(advectX);
+          var y0 = Math.floor(advectY);
+          var x1 = x0 + 1;
+          var y1 = y0 + 1;
+          if (x0 >= 0 && y0 >= 0 && x1 < GRID && y1 < GRID) {
+            var fx = advectX - x0;
+            var fy = advectY - y0;
+            var i00 = (y0 * GRID + x0) * 2;
+            var i01 = (y0 * GRID + x1) * 2;
+            var i10 = (y1 * GRID + x0) * 2;
+            var i11 = (y1 * GRID + x1) * 2;
+            // bilinear interpolation — точно как в пакете
+            tmpLiq[idx] = (
+              liqData[i00] * (1 - fx) * (1 - fy) +
+              liqData[i01] * fx       * (1 - fy) +
+              liqData[i10] * (1 - fx) * fy       +
+              liqData[i11] * fx       * fy
+            ) * liqFade;
+          }
         }
       }
     }
 
-    disp.set(tmpDisp);
-    liq.set(tmpLiq);
+    // 3. Влияние мыши — точно как в пакете
+    // effectiveRadius = radius * min(speed²*20, 1)
+    var effectiveRadius = radius * Math.min(speed * speed * 20, 1);
+
+    for (var i = 0; i < GRID; i++) {
+      for (var j = 0; j < GRID; j++) {
+        var idx = (i * GRID + j) * 2;
+        // cellX/Y как в пакете: (j+0.5)/GRID, (i+0.5)/GRID
+        var cellX = (j + 0.5) / GRID;
+        var cellY = (i + 0.5) / GRID;
+        var dx = cellX - ptrX;
+        var dy = cellY - ptrY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < effectiveRadius * 2 && (Math.abs(rawVX) + Math.abs(rawVY)) > 0.01) {
+          var infl = Math.exp(-dist * dist / (effectiveRadius * effectiveRadius));
+          // displacement: += vel * influence * (intensity*100) * dt * 0.01
+          tmpDisp[idx]     += velX * infl * (intensity * 100) * dt * 0.01;
+          tmpDisp[idx + 1] += velY * infl * (intensity * 100) * dt * 0.01;
+          // liquid density: += influence * (intensity*100) * dt * 0.01 * speedMultiplier
+          var speedMul = Math.min(speed * 10, 1);
+          tmpLiq[idx] += infl * (intensity * 100) * dt * 0.01 * speedMul;
+          tmpLiq[idx + 1] = 0;
+        }
+
+        // clamp — точно как в пакете
+        tmpDisp[idx]     = Math.max(-1, Math.min(1, tmpDisp[idx]));
+        tmpDisp[idx + 1] = Math.max(-1, Math.min(1, tmpDisp[idx + 1]));
+        tmpLiq[idx]      = Math.max(0,  Math.min(1, tmpLiq[idx]));
+        tmpLiq[idx + 1]  = 0;
+      }
+    }
+
+    dispData.set(tmpDisp);
+    liqData.set(tmpLiq);
+
+    prevX = ptrX;
+    prevY = ptrY;
   }
 
   // ── Render loop ──
@@ -380,18 +395,24 @@
   var simTime = 0;
 
   function frame(now) {
-    var dt = Math.min((now - lastNow) * 0.001, 1/30);
+    var dt = Math.min((now - lastNow) * 0.001, 1 / 30);
     lastNow = now;
     simTime += dt * 0.5;  // speed=0.5
 
-    simulate(dt);
-    uploadTexture2();
+    simulate();
+
+    uploadTex(dispTex, dispBuf, dispData, true);
+    uploadTex(liqTex,  liqBuf,  liqData,  false);
 
     gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, dispTex);
+    gl.uniform1i(uDisp, 0);
+
+    gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, liqTex);
-    gl.uniform1i(uLiq, 0);
-    gl.uniform1f(uT,   simTime);
-    gl.uniform2f(uRes, W, H);
+    gl.uniform1i(uLiq, 1);
+
+    gl.uniform1f(uT, simTime);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     requestAnimationFrame(frame);
