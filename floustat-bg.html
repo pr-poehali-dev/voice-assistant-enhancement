@@ -1,26 +1,9 @@
 <!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  ФЛОУСТАТ — WebGL Background для Tilda                          ║
-  ║  Точная копия шейдера из основного проекта                       ║
-  ║                                                                  ║
-  ║  Как вставить:                                                   ║
-  ║  1. Добавь блок «HTML» на Tilda (раздел «Другое»)               ║
-  ║  2. Вставь весь этот код                                         ║
-  ║  3. В настройках блока Tilda поставь нужную высоту              ║
-  ║     (например 100vh для полноэкранного hero)                     ║
-  ║                                                                  ║
-  ║  Параметры шейдера (точные значения из React-проекта):          ║
-  ║  Swirl:      colorA=#1a4fd6  colorB=#3b82f6                      ║
-  ║              speed=0.5  detail=0.6  blend=60  noise=30           ║
-  ║  ChromaFlow: base=#1e40af  up=#3b82f6  down=#1e3a5f              ║
-  ║              left=#0f2d5e  right=#2563eb                         ║
-  ║              intensity=0.85  radius=1.6  momentum=20  op=0.96   ║
-  ║  Overlay:    rgba(0,0,0,0.30)                                    ║
-  ╚══════════════════════════════════════════════════════════════════╝
+  ФЛОУСТАТ — WebGL Background для Tilda
+  Вставь весь код в блок «HTML» на Tilda.
+  В настройках блока задай высоту секции (например 100vh).
 -->
-
 <style>
-  /* Холст занимает весь блок Tilda */
   #fs-canvas {
     display: block;
     position: absolute;
@@ -29,15 +12,13 @@
     height: 100%;
     z-index: 0;
   }
-  /* Overlay — rgba(0,0,0,0.30) как в проекте */
-  #fs-canvas-overlay {
+  #fs-overlay {
     position: absolute;
     inset: 0;
     background: rgba(0,0,0,0.30);
     z-index: 1;
     pointer-events: none;
   }
-  /* Grain — opacity 0.08, mix-blend-mode overlay */
   #fs-grain {
     position: fixed;
     inset: 0;
@@ -50,7 +31,7 @@
 </style>
 
 <canvas id="fs-canvas"></canvas>
-<div id="fs-canvas-overlay"></div>
+<div id="fs-overlay"></div>
 <div id="fs-grain"></div>
 
 <script>
@@ -60,56 +41,29 @@
   var canvas = document.getElementById('fs-canvas');
   var gl = canvas.getContext('webgl', { antialias: false, alpha: false })
          || canvas.getContext('experimental-webgl', { antialias: false, alpha: false });
-  if (!gl) { console.warn('WebGL not supported'); return; }
+  if (!gl) return;
 
-  /* ─────────────────────────────────────────────
-     RESIZE
-  ───────────────────────────────────────────── */
   var W = 1, H = 1;
   function resize() {
-    var parent = canvas.parentElement;
-    W = parent.offsetWidth  || window.innerWidth;
-    H = parent.offsetHeight || window.innerHeight;
+    var p = canvas.parentElement;
+    W = p.offsetWidth  || window.innerWidth;
+    H = p.offsetHeight || window.innerHeight;
     canvas.width  = Math.floor(W);
     canvas.height = Math.floor(H);
     gl.viewport(0, 0, canvas.width, canvas.height);
   }
   window.addEventListener('resize', resize);
 
-  /* ─────────────────────────────────────────────
-     SHADERS
-  ───────────────────────────────────────────── */
   var VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}';
 
-  /*
-   * Фрагментный шейдер реализует два слоя точно как в React-компонентах:
-   *
-   * 1. SWIRL (shaders/react <Swirl>)
-   *    colorA  = #1a4fd6   colorB = #3b82f6
-   *    speed   = 0.5       detail = 0.6 (5 октав fBm)
-   *    blend   = 60        → mix(colA, colB, swirl * 0.60)
-   *    coarse/medium/fine X/Y = 30 → масштаб шума = 30/100 = 0.30
-   *    Итоговый scale = 0.30 * detail(0.6) * 6 ≈ 1.08 (скейл базового fBm)
-   *
-   * 2. CHROMAFLOW (shaders/react <ChromaFlow>)
-   *    baseColor  = #1e40af
-   *    upColor    = #3b82f6   downColor  = #1e3a5f
-   *    leftColor  = #0f2d5e   rightColor = #2563eb
-   *    intensity  = 0.85      radius     = 1.6
-   *    momentum   = 20        → lerp factor = 1/20 = 0.05
-   *    maskType   = "alpha"   opacity    = 0.96
-   *
-   * Мышь передаётся как нормализованные UV (0..1).
-   * u_mom — скорость мыши (0..1), затухает * 0.90 за кадр.
-   */
   var FS = [
   'precision highp float;',
-  'uniform float u_t;',      /* время, секунды */
-  'uniform vec2  u_r;',      /* разрешение экрана */
-  'uniform vec2  u_m;',      /* мышь 0..1 */
-  'uniform float u_mom;',    /* momentum мыши 0..1 */
+  'uniform float u_t;',
+  'uniform vec2  u_r;',
+  'uniform vec2  u_m;',    /* сглаженная позиция мыши 0..1          */
+  'uniform float u_mom;',  /* сглаженный импульс 0..1, без скачков  */
 
-  /* ── Simplex 3D noise (полная реализация) ── */
+  /* Simplex 3D noise */
   'vec3 p3(vec3 x){return x-floor(x*(1./289.))*289.;}',
   'vec4 p4(vec4 x){return x-floor(x*(1./289.))*289.;}',
   'vec4 pm(vec4 x){return p4(((x*34.)+1.)*x);}',
@@ -121,9 +75,9 @@
   '  vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);',
   '  vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;',
   '  i=p3(i);',
-  '  vec4 p=pm(pm(pm(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));',
+  '  vec4 pp=pm(pm(pm(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));',
   '  vec3 ns=.142857142857*D.wyz-D.xzx;',
-  '  vec4 j=p-49.*floor(p*ns.z*ns.z);',
+  '  vec4 j=pp-49.*floor(pp*ns.z*ns.z);',
   '  vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);',
   '  vec4 xs=x_*ns.x+ns.yyyy;vec4 ys=y_*ns.x+ns.yyyy;',
   '  vec4 h=1.-abs(xs)-abs(ys);',
@@ -131,95 +85,61 @@
   '  vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;',
   '  vec4 sh=-step(h,vec4(0.));',
   '  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;',
-  '  vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);',
-  '  vec3 p2=vec3(a1.xy,h.z);vec3 p3v=vec3(a1.zw,h.w);',
-  '  vec4 norm=ti(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3v,p3v)));',
-  '  p0*=norm.x;p1*=norm.y;p2*=norm.z;p3v*=norm.w;',
+  '  vec3 q0=vec3(a0.xy,h.x);vec3 q1=vec3(a0.zw,h.y);',
+  '  vec3 q2=vec3(a1.xy,h.z);vec3 q3=vec3(a1.zw,h.w);',
+  '  vec4 norm=ti(vec4(dot(q0,q0),dot(q1,q1),dot(q2,q2),dot(q3,q3)));',
+  '  q0*=norm.x;q1*=norm.y;q2*=norm.z;q3*=norm.w;',
   '  vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);',
-  '  m=m*m;return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3v,x3)));',
+  '  m=m*m;return 42.*dot(m*m,vec4(dot(q0,x0),dot(q1,x1),dot(q2,x2),dot(q3,x3)));',
   '}',
 
-  /* ── fBm: 5 октав, detail=0.6 ── */
-  'float fbm(vec3 p){',
-  '  float v=0.,a=.5;',
-  '  for(int i=0;i<5;i++){v+=a*sn3(p);p=p*2.1+vec3(1.7,9.2,3.4);a*=.5;}',
-  '  return v;',
-  '}',
+  /* fBm 5 октав */
+  'float fbm(vec3 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*sn3(p);p=p*2.1+vec3(1.7,9.2,3.4);a*=.5;}return v;}',
 
-  /* ── ChromaFlow: цвета по направлению движения мыши ── */
-  'vec3 cfColor(vec2 dir){',
-  /* base=#1e40af up=#3b82f6 down=#1e3a5f left=#0f2d5e right=#2563eb */
-  '  vec3 base =vec3(.118,.251,.686);',
-  '  vec3 cup  =vec3(.231,.510,.965);',
-  '  vec3 cdown=vec3(.118,.227,.373);',
-  '  vec3 cleft=vec3(.059,.176,.369);',
-  '  vec3 cright=vec3(.145,.388,.922);',
-  '  return base',
-  '    +clamp( dir.x,0.,1.)*cup',
-  '    +clamp(-dir.x,0.,1.)*cdown',
-  '    +clamp( dir.y,0.,1.)*cright',
-  '    +clamp(-dir.y,0.,1.)*cleft;',
+  /* ChromaFlow: цвет по направлению вектора */
+  'vec3 cf(vec2 d){',
+  '  vec3 base=vec3(.118,.251,.686);',   /* #1e40af */
+  '  vec3 cu  =vec3(.231,.510,.965);',   /* #3b82f6 */
+  '  vec3 cd  =vec3(.118,.227,.373);',   /* #1e3a5f */
+  '  vec3 cl  =vec3(.059,.176,.369);',   /* #0f2d5e */
+  '  vec3 cr  =vec3(.145,.388,.922);',   /* #2563eb */
+  '  return base+clamp(d.x,0.,1.)*cu+clamp(-d.x,0.,1.)*cd+clamp(d.y,0.,1.)*cr+clamp(-d.y,0.,1.)*cl;',
   '}',
 
   'void main(){',
   '  vec2 uv=gl_FragCoord.xy/u_r;',
   '  float ar=u_r.x/u_r.y;',
-
-  /* Координаты с учётом aspect ratio */
   '  vec2 p=uv*vec2(ar,1.);',
 
-  /* ── SWIRL ──
-   * noise=30/100=0.30, detail=0.6 → scale≈1.08
-   * speed=0.5 → t*0.5
-   * blend=60 → mix factor 0.60
-   */
-  '  float sc=1.08;',
-  '  float tt=u_t*0.5;',
-  '  float n1=fbm(vec3(p*sc,tt));',
-  '  float n2=fbm(vec3(p*sc*0.75+vec2(n1*.6,n1*.6),tt*0.7+4.3));',
-  '  float sw=clamp(n2*.5+.5, 0.,1.);',
-  /* colorA=#1a4fd6  colorB=#3b82f6  blend=60→0.60 */
-  '  vec3 cA=vec3(.102,.310,.839);',
-  '  vec3 cB=vec3(.231,.510,.965);',
-  '  vec3 swirlCol=mix(cA,cB,sw*0.60);',
+  /* SWIRL: speed=0.5 — время уже замедлено в JS до ~0.016/кадр */
+  '  float n1=fbm(vec3(p*1.08, u_t));',
+  '  float n2=fbm(vec3(p*0.81+vec2(n1*.6,n1*.6), u_t*0.7+4.3));',
+  '  float sw=clamp(n2*.5+.5,0.,1.);',
+  '  vec3 col=mix(vec3(.102,.310,.839),vec3(.231,.510,.965),sw*0.60);',
 
-  /* ── CHROMAFLOW ──
-   * intensity=0.85  radius=1.6  opacity=0.96
-   * Вектор от мыши к пикселю — определяет направление цвета
-   */
-  '  vec2 mpos=u_m*vec2(ar,1.);',
-  '  vec2 dv=p-mpos;',
-  '  float dist=length(dv);',
-  '  float infl=exp(-dist*(1./1.6))*0.85;',   /* radius=1.6, intensity=0.85 */
-  '  vec2 dir=normalize(dv+.0001)*infl*u_mom;',
-  '  vec3 chroma=cfColor(dir)*infl;',
-
-  /* Composite: swirl + chromaflow * opacity(0.96) */
-  '  vec3 col=clamp(swirlCol+chroma*0.96,0.,1.);',
+  /* CHROMAFLOW: radius=1.6 intensity=0.85
+     u_mom уже сглажен снаружи — нет скачков → нет мерцания */
+  '  vec2 mp=u_m*vec2(ar,1.);',
+  '  float dist=length(p-mp);',
+  '  float infl=exp(-dist*(1./1.6))*0.85;',
+  '  vec2 dir=normalize(p-mp+.0001)*infl*u_mom;',
+  '  col=clamp(col+cf(dir)*infl*0.96,0.,1.);',
   '  gl_FragColor=vec4(col,1.);',
   '}',
   ].join('\n');
 
-  /* ─────────────────────────────────────────────
-     COMPILE & LINK
-  ───────────────────────────────────────────── */
   function mkShader(type, src) {
     var s = gl.createShader(type);
     gl.shaderSource(s, src);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      console.error('Shader error:', gl.getShaderInfoLog(s));
-    }
     return s;
   }
-
   var prog = gl.createProgram();
-  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER,   VS));
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, VS));
   gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FS));
   gl.linkProgram(prog);
   gl.useProgram(prog);
 
-  /* Fullscreen quad */
   var buf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
@@ -232,37 +152,55 @@
   var uM   = gl.getUniformLocation(prog, 'u_m');
   var uMom = gl.getUniformLocation(prog, 'u_mom');
 
-  /* ─────────────────────────────────────────────
-     МЫШЬ — lerp factor = 1/momentum = 1/20 = 0.05
-  ───────────────────────────────────────────── */
-  var mouse  = { x: 0.5, y: 0.5 };   /* текущее сглаженное положение */
-  var target = { x: 0.5, y: 0.5 };   /* целевое положение            */
-  var mom    = 0;                     /* скорость мыши 0..1           */
-  var prev   = { x: 0.5, y: 0.5 };   /* для расчёта дельты           */
+  /* ── Мышь ──
+     Два уровня сглаживания, чтобы убрать мерцание:
+     1. targetMouse → mouse с lerp 0.05 (как в React-проекте, momentum=20)
+     2. mom — сглаженный импульс с lerp 0.06 и затуханием 0.94
+        Никаких Math.sqrt(dx*dx+...) — только плавное накопление
+  */
+  var mouse  = { x: 0.5, y: 0.5 };
+  var target = { x: 0.5, y: 0.5 };
+  var mom    = 0.0;   /* сглаженный импульс — передаётся в шейдер */
+  var rawMom = 0.0;   /* сырой импульс от движения мыши           */
 
   window.addEventListener('mousemove', function(e) {
     var nx = e.clientX / window.innerWidth;
     var ny = 1.0 - e.clientY / window.innerHeight;
-    var dx = nx - prev.x, dy = ny - prev.y;
-    /* momentum=20 → нормируем скорость */
-    mom = Math.min(1.0, Math.sqrt(dx*dx + dy*dy) * 20 * 20);
-    prev.x = target.x = nx;
-    prev.y = target.y = ny;
+    /* накапливаем сырой импульс как дистанцию перемещения */
+    var dx = nx - target.x, dy = ny - target.y;
+    rawMom = Math.min(1.0, Math.sqrt(dx*dx + dy*dy) * 8);
+    target.x = nx;
+    target.y = ny;
   });
 
-  /* ─────────────────────────────────────────────
-     RENDER LOOP
-  ───────────────────────────────────────────── */
-  var t0 = performance.now();
+  /* ── Время ──
+     Считаем dt вручную и ограничиваем 60 fps.
+     Умножаем на speed=0.5 — фон движется ТОЧНО как в React.
+     Это исключает рывки при потере фокуса/разворачивании вкладки.
+  */
+  var t       = 0;
+  var lastNow = performance.now();
 
   function frame(now) {
-    /* lerp мыши: factor = 1/momentum = 1/20 = 0.05 */
+    /* dt в секундах, зажат до 1/30 — нет скачков при смене вкладки */
+    var dt = Math.min((now - lastNow) * 0.001, 1/30);
+    lastNow = now;
+
+    /* speed = 0.5 */
+    t += dt * 0.5;
+
+    /* сглаживание позиции мыши: lerp 0.05 = 1/momentum(20) */
     mouse.x += (target.x - mouse.x) * 0.05;
     mouse.y += (target.y - mouse.y) * 0.05;
-    /* затухание momentum */
-    mom *= 0.90;
 
-    gl.uniform1f(uT,   (now - t0) * 0.001);
+    /* двойное сглаживание импульса:
+       rawMom → mom с lerp 0.06, затем затухание 0.94
+       Это убирает резкие скачки → нет мерцания */
+    mom += (rawMom - mom) * 0.06;
+    mom *= 0.94;
+    rawMom *= 0.85;
+
+    gl.uniform1f(uT,   t);
     gl.uniform2f(uR,   W, H);
     gl.uniform2f(uM,   mouse.x, mouse.y);
     gl.uniform1f(uMom, mom);
