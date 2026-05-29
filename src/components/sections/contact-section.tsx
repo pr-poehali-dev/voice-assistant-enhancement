@@ -11,11 +11,7 @@ export function ContactSection() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
-    if (!formData.name || !formData.email || !formData.message) {
-      return
-    }
-
+    if (!formData.name || !formData.email || !formData.message) return
     setIsSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setIsSubmitting(false)
@@ -27,17 +23,19 @@ export function ContactSection() {
   return (
     <section
       ref={ref}
-      className="flex h-screen w-screen shrink-0 snap-start items-center px-4 pt-20 md:px-12 md:pt-0 lg:px-16"
+      className="flex h-screen w-screen shrink-0 snap-start flex-col justify-center px-5 pt-16 md:items-center md:px-12 md:pt-0 lg:px-16"
     >
       <div className="mx-auto w-full max-w-7xl">
-        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16 lg:gap-24">
+        <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] md:gap-16 lg:gap-24">
+
+          {/* Left — контакты и тарифы */}
           <div className="flex flex-col justify-center">
             <div
-              className={`mb-6 transition-all duration-700 md:mb-12 ${
+              className={`mb-4 transition-all duration-700 md:mb-12 ${
                 isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
               }`}
             >
-              <h2 className="mb-2 font-sans text-4xl font-light leading-[1.05] tracking-tight text-foreground md:mb-3 md:text-7xl lg:text-8xl">
+              <h2 className="mb-1 font-sans text-3xl font-light leading-[1.05] tracking-tight text-foreground md:text-7xl lg:text-8xl">
                 Начните
                 <br />
                 мониторинг
@@ -45,7 +43,7 @@ export function ContactSection() {
               <p className="font-mono text-xs text-foreground/60 md:text-base">/ Запросите демо-доступ</p>
             </div>
 
-            <div className="space-y-4 md:space-y-8">
+            <div className="space-y-3 md:space-y-8">
               <a
                 href="mailto:hello@floustat.ru"
                 className={`group block transition-all duration-700 ${
@@ -53,91 +51,73 @@ export function ContactSection() {
                 }`}
                 style={{ transitionDelay: "200ms" }}
               >
-                <div className="mb-1 flex items-center gap-2">
+                <div className="mb-0.5 flex items-center gap-2">
                   <Icon name="Mail" className="h-3 w-3 text-foreground/60" />
                   <span className="font-mono text-xs text-foreground/60">Email</span>
                 </div>
-                <p className="text-base text-foreground transition-colors group-hover:text-foreground/70 md:text-2xl">
+                <p className="text-sm text-foreground transition-colors group-hover:text-foreground/70 md:text-2xl">
                   hello@floustat.ru
                 </p>
               </a>
 
+              {/* Тарифы */}
               <div
-                className={`transition-all duration-700 ${
-                  isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
-                }`}
-                style={{ transitionDelay: "350ms" }}
-              >
-                <div className="mb-1 flex items-center gap-2">
-                  <Icon name="Globe" className="h-3 w-3 text-foreground/60" />
-                  <span className="font-mono text-xs text-foreground/60">Платформы</span>
-                </div>
-                <p className="text-base text-foreground md:text-lg text-foreground/80">ChatGPT · Perplexity · Claude · Gemini</p>
-              </div>
-
-              <div
-                className={`flex gap-4 pt-2 transition-all duration-700 md:pt-4 ${
-                  isVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"
-                }`}
-                style={{ transitionDelay: "500ms" }}
-              >
-                {["Telegram", "LinkedIn"].map((social) => (
-                  <a
-                    key={social}
-                    href="#"
-                    className="border-b border-transparent font-mono text-xs text-foreground/60 transition-all hover:border-foreground/60 hover:text-foreground/90"
-                  >
-                    {social}
-                  </a>
-                ))}
-              </div>
-
-              {/* Pricing hint */}
-              <div
-                className={`rounded-xl border border-foreground/10 bg-foreground/5 p-4 transition-all duration-700 ${
+                className={`rounded-xl border border-foreground/10 bg-foreground/5 p-3 transition-all duration-700 md:p-4 ${
                   isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: "600ms" }}
+                style={{ transitionDelay: "400ms" }}
               >
                 <p className="font-mono text-xs text-foreground/50 mb-2">Тарифы</p>
-                <div className="flex gap-4">
+                <div className="flex gap-3 md:gap-4">
                   <div>
-                    <div className="font-sans text-sm font-medium text-foreground">Starter</div>
-                    <div className="font-mono text-xs text-foreground/50">1 бренд · 3 LLM</div>
+                    <div className="font-sans text-xs font-medium text-foreground md:text-sm">Starter</div>
+                    <div className="font-mono text-[10px] text-foreground/50">1 бренд · 3 LLM</div>
                   </div>
                   <div className="h-8 w-px bg-foreground/10" />
                   <div>
-                    <div className="font-sans text-sm font-medium text-foreground">Pro</div>
-                    <div className="font-mono text-xs text-foreground/50">5 брендов · все LLM</div>
+                    <div className="font-sans text-xs font-medium text-foreground md:text-sm">Pro</div>
+                    <div className="font-mono text-[10px] text-foreground/50">5 брендов · все LLM</div>
                   </div>
                   <div className="h-8 w-px bg-foreground/10" />
                   <div>
-                    <div className="font-sans text-sm font-medium text-foreground">Enterprise</div>
-                    <div className="font-mono text-xs text-foreground/50">Без лимитов · API</div>
+                    <div className="font-sans text-xs font-medium text-foreground md:text-sm">Enterprise</div>
+                    <div className="font-mono text-[10px] text-foreground/50">Без лимитов · API</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right side - Form */}
+          {/* Right — форма */}
           <div className="flex flex-col justify-center">
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
               <div
-                className={`transition-all duration-700 ${
+                className={`grid grid-cols-2 gap-3 transition-all duration-700 md:block md:space-y-6 ${
                   isVisible ? "translate-x-0 opacity-100" : "translate-x-16 opacity-0"
                 }`}
                 style={{ transitionDelay: "200ms" }}
               >
-                <label className="mb-1 block font-mono text-xs text-foreground/60 md:mb-2">Имя</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  className="w-full border-b border-foreground/30 bg-transparent py-1.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
-                  placeholder="Ваше имя"
-                />
+                <div>
+                  <label className="mb-1 block font-mono text-[10px] text-foreground/60 md:text-xs">Имя</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    className="w-full border-b border-foreground/30 bg-transparent py-1 text-xs text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
+                    placeholder="Ваше имя"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-mono text-[10px] text-foreground/60 md:text-xs">Компания</label>
+                  <input
+                    type="text"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    className="w-full border-b border-foreground/30 bg-transparent py-1 text-xs text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
+                    placeholder="Компания"
+                  />
+                </div>
               </div>
 
               <div
@@ -146,13 +126,13 @@ export function ContactSection() {
                 }`}
                 style={{ transitionDelay: "300ms" }}
               >
-                <label className="mb-1 block font-mono text-xs text-foreground/60 md:mb-2">Email</label>
+                <label className="mb-1 block font-mono text-[10px] text-foreground/60 md:text-xs">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="w-full border-b border-foreground/30 bg-transparent py-1.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
+                  className="w-full border-b border-foreground/30 bg-transparent py-1 text-xs text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
                   placeholder="your@company.com"
                 />
               </div>
@@ -163,29 +143,13 @@ export function ContactSection() {
                 }`}
                 style={{ transitionDelay: "400ms" }}
               >
-                <label className="mb-1 block font-mono text-xs text-foreground/60 md:mb-2">Компания</label>
-                <input
-                  type="text"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  className="w-full border-b border-foreground/30 bg-transparent py-1.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
-                  placeholder="Название компании"
-                />
-              </div>
-
-              <div
-                className={`transition-all duration-700 ${
-                  isVisible ? "translate-x-0 opacity-100" : "translate-x-16 opacity-0"
-                }`}
-                style={{ transitionDelay: "500ms" }}
-              >
-                <label className="mb-1 block font-mono text-xs text-foreground/60 md:mb-2">Что хотите отслеживать?</label>
+                <label className="mb-1 block font-mono text-[10px] text-foreground/60 md:text-xs">Что хотите отслеживать?</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   required
-                  className="w-full border-b border-foreground/30 bg-transparent py-1.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
+                  className="w-full border-b border-foreground/30 bg-transparent py-1 text-xs text-foreground placeholder:text-foreground/40 focus:border-foreground/50 focus:outline-none md:py-2 md:text-base"
                   placeholder="Ваш бренд, продукт или тема..."
                 />
               </div>
@@ -194,17 +158,15 @@ export function ContactSection() {
                 className={`transition-all duration-700 ${
                   isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
                 }`}
-                style={{ transitionDelay: "650ms" }}
+                style={{ transitionDelay: "550ms" }}
               >
-                <MagneticButton
-                  variant="primary"
-                  size="lg"
-                  className="w-full disabled:opacity-50"
-                >
+                <MagneticButton variant="primary" size="lg" className="w-full disabled:opacity-50">
                   {isSubmitting ? "Отправка..." : "Запросить демо"}
                 </MagneticButton>
                 {submitSuccess && (
-                  <p className="mt-3 text-center font-mono text-sm text-foreground/80">Заявка отправлена! Свяжемся в течение 24 часов.</p>
+                  <p className="mt-2 text-center font-mono text-xs text-foreground/80 md:mt-3 md:text-sm">
+                    Заявка отправлена! Свяжемся в течение 24 часов.
+                  </p>
                 )}
               </div>
             </form>

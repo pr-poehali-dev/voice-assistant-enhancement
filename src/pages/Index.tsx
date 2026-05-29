@@ -211,7 +211,7 @@ export default function Index() {
       </div>
 
       <nav
-        className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-6 transition-opacity duration-700 md:px-12 ${
+        className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-4 py-4 transition-opacity duration-700 md:px-12 md:py-6 ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -219,15 +219,15 @@ export default function Index() {
           onClick={() => scrollToSection(0)}
           className="flex items-center gap-2 transition-transform hover:scale-105"
         >
-          <div className="flex h-10 w-10 items-center justify-center transition-all duration-300 hover:scale-110">
+          <div className="flex h-8 w-8 items-center justify-center transition-all duration-300 hover:scale-110 md:h-10 md:w-10">
             <img
               src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/a4e5eecc-ef88-443a-8a56-39aecdcdb9ba.png"
               alt="Флоустат"
-              className="h-9 w-9 object-contain"
+              className="h-7 w-7 object-contain md:h-9 md:w-9"
               style={{ filter: "brightness(0) invert(1)" }}
             />
           </div>
-          <span className="font-sans text-xl font-semibold tracking-tight text-white">Флоустат</span>
+          <span className="font-sans text-base font-semibold tracking-tight text-white md:text-xl">Флоустат</span>
         </button>
 
         <div className="hidden items-center gap-8 md:flex">
@@ -249,9 +249,24 @@ export default function Index() {
           ))}
         </div>
 
-        <MagneticButton variant="secondary" onClick={() => scrollToSection(4)}>
-          Запросить демо
-        </MagneticButton>
+        {/* Мобильная навигация — точки */}
+        <div className="flex items-center gap-1.5 md:hidden">
+          {[0,1,2,3,4].map((i) => (
+            <button
+              key={i}
+              onClick={() => scrollToSection(i)}
+              className={`rounded-full transition-all duration-300 ${
+                currentSection === i ? "h-2 w-4 bg-white" : "h-2 w-2 bg-white/40"
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="hidden md:block">
+          <MagneticButton variant="secondary" onClick={() => scrollToSection(4)}>
+            Запросить демо
+          </MagneticButton>
+        </div>
       </nav>
 
       <div
@@ -263,50 +278,50 @@ export default function Index() {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {/* Hero Section */}
-        <section className="flex min-h-screen w-screen shrink-0 flex-col justify-end px-6 pb-16 pt-24 md:px-12 md:pb-24">
+        <section className="relative flex h-screen w-screen shrink-0 flex-col justify-end px-5 pb-12 pt-20 md:px-12 md:pb-24 md:pt-24">
           <div className="max-w-4xl">
-            <div className="mb-4 inline-block animate-in fade-in slide-in-from-bottom-4 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md duration-700">
-              <p className="font-mono text-xs text-white/90">AI Visibility Analytics · LLM Monitoring</p>
+            <div className="mb-3 inline-block animate-in fade-in slide-in-from-bottom-4 rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-md duration-700 md:mb-4 md:px-4 md:py-1.5">
+              <p className="font-mono text-[10px] text-white/90 md:text-xs">AI Visibility Analytics · LLM Monitoring</p>
             </div>
-            <h1 className="mb-6 animate-in fade-in slide-in-from-bottom-8 font-sans text-5xl font-light leading-[1.1] tracking-tight text-white duration-1000 md:text-7xl lg:text-8xl">
+            <h1 className="mb-4 animate-in fade-in slide-in-from-bottom-8 font-sans text-4xl font-light leading-[1.1] tracking-tight text-white duration-1000 md:mb-6 md:text-7xl lg:text-8xl">
               <span className="text-balance">
                 Ваш бренд
                 <br />
                 <span className="text-white/50">в эпоху</span> ИИ-поиска
               </span>
             </h1>
-            <p className="mb-8 max-w-2xl animate-in fade-in slide-in-from-bottom-4 text-lg leading-relaxed text-white/85 duration-1000 delay-200 md:text-xl">
+            <p className="mb-5 max-w-2xl animate-in fade-in slide-in-from-bottom-4 text-sm leading-relaxed text-white/85 duration-1000 delay-200 md:mb-8 md:text-xl">
               <span className="text-pretty">
-                Флоустат отслеживает, как ваш бренд, продукт и конкуренты упоминаются в ответах ChatGPT, Perplexity и других LLM. Аналитика видимости в генеративном поиске — в одном дашборде.
+                Флоустат отслеживает, как ваш бренд и конкуренты упоминаются в ответах ChatGPT, Perplexity и других LLM. Аналитика видимости в генеративном поиске — в одном дашборде.
               </span>
             </p>
 
-            {/* Mini dashboard preview */}
-            <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100">
-              <div className="inline-flex items-center gap-6 rounded-2xl border border-white/15 bg-white/8 px-6 py-4 backdrop-blur-md">
+            {/* Mini dashboard preview — скрыт на маленьких экранах */}
+            <div className="mb-5 hidden animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100 sm:block md:mb-8">
+              <div className="inline-flex items-center gap-4 rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-md md:gap-6 md:px-6 md:py-4">
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-white">84%</div>
-                  <div className="font-mono text-xs text-white/60">Видимость в Алиса AI</div>
+                  <div className="font-mono text-xl font-semibold text-white md:text-2xl">84%</div>
+                  <div className="font-mono text-[10px] text-white/60 md:text-xs">Видимость в ChatGPT</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-emerald-300">↑ 9%</div>
-                  <div className="font-mono text-xs text-white/60">За 30 дней</div>
+                  <div className="font-mono text-xl font-semibold text-emerald-300 md:text-2xl">↑ 9%</div>
+                  <div className="font-mono text-[10px] text-white/60 md:text-xs">За 30 дней</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-white">5</div>
-                  <div className="font-mono text-xs text-white/60">LLM-платформ</div>
+                  <div className="font-mono text-xl font-semibold text-white md:text-2xl">5</div>
+                  <div className="font-mono text-[10px] text-white/60 md:text-xs">LLM-платформ</div>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center">
-                  <div className="font-mono text-2xl font-semibold text-amber-300">12</div>
-                  <div className="font-mono text-xs text-white/60">Конкурента</div>
+                  <div className="font-mono text-xl font-semibold text-amber-300 md:text-2xl">12</div>
+                  <div className="font-mono text-[10px] text-white/60 md:text-xs">Конкурентов</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex animate-in fade-in slide-in-from-bottom-4 flex-col gap-4 duration-1000 delay-300 sm:flex-row sm:items-center">
+            <div className="flex animate-in fade-in slide-in-from-bottom-4 flex-col gap-3 duration-1000 delay-300 sm:flex-row sm:items-center">
               <MagneticButton
                 size="lg"
                 variant="primary"
@@ -315,12 +330,12 @@ export default function Index() {
                 Запросить демо
               </MagneticButton>
               <MagneticButton size="lg" variant="secondary" onClick={() => scrollToSection(2)}>
-                Смотреть возможности
+                Возможности
               </MagneticButton>
             </div>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-in fade-in duration-1000 delay-500">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-in fade-in duration-1000 delay-500 md:bottom-8">
             <div className="flex items-center gap-2">
               <p className="font-mono text-xs text-white/70">Листайте вправо</p>
               <div className="flex h-6 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
