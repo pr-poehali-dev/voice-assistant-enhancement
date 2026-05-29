@@ -168,76 +168,78 @@ export default function Index() {
         {/* Hero */}
         <section
           ref={(el) => { sectionRefs.current[0] = el }}
-          className="relative flex min-h-screen flex-col justify-end px-5 pb-16 pt-24 md:px-12 md:pb-28"
+          className="relative flex min-h-screen items-center px-5 pb-16 pt-28 md:px-12 md:pb-20"
         >
-          {/* Dashboard screenshot — floating right */}
-          <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-[52%] items-center justify-end pr-4 xl:flex 2xl:pr-12">
-            <div className="relative mt-16">
-              {/* Glow behind */}
-              <div className="absolute -inset-4 rounded-2xl bg-blue-500/20 blur-3xl" />
-              {/* Frame */}
-              <div className="relative overflow-hidden rounded-2xl border border-white/15 shadow-2xl shadow-black/40"
-                style={{ backdropFilter: 'blur(2px)' }}>
+          <div className="flex w-full flex-col items-center gap-10 lg:flex-row lg:items-center lg:gap-12">
+
+            {/* Left: text */}
+            <div className="w-full flex-shrink-0 lg:w-[46%]">
+              <div className="mb-3 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-md md:mb-4 md:px-4 md:py-1.5">
+                <p className="font-mono text-[10px] text-white/90 md:text-xs">AI Visibility Analytics · LLM Monitoring</p>
+              </div>
+              <h1 className="mb-4 font-sans text-4xl font-light leading-[1.1] tracking-tight text-white md:mb-6 md:text-6xl lg:text-7xl">
+                <span className="text-balance">
+                  Ваш бренд
+                  <br />
+                  <span className="text-white/50">в эпоху</span> ИИ-поиска
+                </span>
+              </h1>
+              <p className="mb-5 max-w-xl text-sm leading-relaxed text-white/85 md:mb-8 md:text-lg">
+                Флоустат отслеживает, как ваш бренд и конкуренты упоминаются в ответах ChatGPT, Perplexity и других LLM. Аналитика видимости в генеративном поиске — в одном дашборде.
+              </p>
+
+              {/* Mini stats */}
+              <div className="mb-6 hidden sm:block md:mb-8">
+                <div className="inline-flex items-center gap-4 rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-md md:gap-6 md:px-6 md:py-4">
+                  <div className="text-center">
+                    <div className="font-mono text-xl font-semibold text-white md:text-2xl">84%</div>
+                    <div className="font-mono text-[10px] text-white/60 md:text-xs">Видимость в ChatGPT</div>
+                  </div>
+                  <div className="h-8 w-px bg-white/20" />
+                  <div className="text-center">
+                    <div className="font-mono text-xl font-semibold text-emerald-300 md:text-2xl">↑ 9%</div>
+                    <div className="font-mono text-[10px] text-white/60 md:text-xs">За 30 дней</div>
+                  </div>
+                  <div className="h-8 w-px bg-white/20" />
+                  <div className="text-center">
+                    <div className="font-mono text-xl font-semibold text-white md:text-2xl">5</div>
+                    <div className="font-mono text-[10px] text-white/60 md:text-xs">LLM-платформ</div>
+                  </div>
+                  <div className="h-8 w-px bg-white/20" />
+                  <div className="text-center">
+                    <div className="font-mono text-xl font-semibold text-amber-300 md:text-2xl">12</div>
+                    <div className="font-mono text-[10px] text-white/60 md:text-xs">Конкурентов</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <MagneticButton size="lg" variant="primary" onClick={() => scrollToSection(4)}>
+                  Запросить демо
+                </MagneticButton>
+                <MagneticButton size="lg" variant="secondary" onClick={() => scrollToSection(2)}>
+                  Возможности
+                </MagneticButton>
+              </div>
+            </div>
+
+            {/* Right: dashboard screenshot */}
+            <div className="relative w-full lg:w-[54%]">
+              {/* Glow */}
+              <div className="absolute -inset-6 rounded-3xl bg-blue-500/15 blur-3xl" />
+              {/* Screenshot frame */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/15 shadow-[0_32px_80px_rgba(0,0,0,0.6)]">
                 <img
                   src="https://cdn.poehali.dev/projects/2529b4d9-26c0-451a-90a3-fc0306c51933/bucket/4b414f77-bc82-4126-9711-0ef8adae78f0.png"
                   alt="Личный кабинет Флоустат"
-                  className="block w-full max-w-[640px] opacity-90"
+                  className="block w-full"
                   draggable={false}
                 />
-                {/* Subtle gradient fade at bottom */}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-4xl xl:max-w-[46%]">
-            <div className="mb-3 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-md md:mb-4 md:px-4 md:py-1.5">
-              <p className="font-mono text-[10px] text-white/90 md:text-xs">AI Visibility Analytics · LLM Monitoring</p>
-            </div>
-            <h1 className="mb-4 font-sans text-4xl font-light leading-[1.1] tracking-tight text-white md:mb-6 md:text-7xl lg:text-8xl">
-              <span className="text-balance">
-                Ваш бренд
-                <br />
-                <span className="text-white/50">в эпоху</span> ИИ-поиска
-              </span>
-            </h1>
-            <p className="mb-5 max-w-2xl text-sm leading-relaxed text-white/85 md:mb-8 md:text-xl">
-              Флоустат отслеживает, как ваш бренд и конкуренты упоминаются в ответах ChatGPT, Perplexity и других LLM. Аналитика видимости в генеративном поиске — в одном дашборде.
-            </p>
-
-            {/* Mini dashboard */}
-            <div className="mb-5 hidden sm:block md:mb-8">
-              <div className="inline-flex items-center gap-4 rounded-2xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-md md:gap-6 md:px-6 md:py-4">
-                <div className="text-center">
-                  <div className="font-mono text-xl font-semibold text-white md:text-2xl">84%</div>
-                  <div className="font-mono text-[10px] text-white/60 md:text-xs">Видимость в ChatGPT</div>
-                </div>
-                <div className="h-8 w-px bg-white/20" />
-                <div className="text-center">
-                  <div className="font-mono text-xl font-semibold text-emerald-300 md:text-2xl">↑ 9%</div>
-                  <div className="font-mono text-[10px] text-white/60 md:text-xs">За 30 дней</div>
-                </div>
-                <div className="h-8 w-px bg-white/20" />
-                <div className="text-center">
-                  <div className="font-mono text-xl font-semibold text-white md:text-2xl">5</div>
-                  <div className="font-mono text-[10px] text-white/60 md:text-xs">LLM-платформ</div>
-                </div>
-                <div className="h-8 w-px bg-white/20" />
-                <div className="text-center">
-                  <div className="font-mono text-xl font-semibold text-amber-300 md:text-2xl">12</div>
-                  <div className="font-mono text-[10px] text-white/60 md:text-xs">Конкурентов</div>
-                </div>
+                {/* Fade bottom */}
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <MagneticButton size="lg" variant="primary" onClick={() => scrollToSection(4)}>
-                Запросить демо
-              </MagneticButton>
-              <MagneticButton size="lg" variant="secondary" onClick={() => scrollToSection(2)}>
-                Возможности
-              </MagneticButton>
-            </div>
           </div>
 
           {/* Scroll hint */}
