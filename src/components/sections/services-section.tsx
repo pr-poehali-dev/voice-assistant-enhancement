@@ -29,7 +29,7 @@ export function FeaturesSection() {
   return (
     <section
       ref={ref}
-      className="flex h-screen w-screen shrink-0 snap-start flex-col justify-center px-5 pt-16 md:items-center md:px-12 md:pt-0 lg:px-16"
+      className="flex min-h-screen w-full flex-col justify-center px-5 py-24 md:px-12 lg:px-16"
     >
       <div className="mx-auto w-full max-w-7xl">
         <div
