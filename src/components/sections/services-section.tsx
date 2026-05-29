@@ -1,7 +1,30 @@
 import { useReveal } from "@/hooks/use-reveal"
 
-export function ServicesSection() {
+export function FeaturesSection() {
   const { ref, isVisible } = useReveal(0.3)
+
+  const features = [
+    {
+      title: "AI Visibility Tracking",
+      description: "Автоматический мониторинг упоминаний бренда в ChatGPT, Perplexity, Claude, Gemini и других LLM. Реальные данные, обновляемые ежедневно.",
+      direction: "top",
+    },
+    {
+      title: "Конкурентная аналитика",
+      description: "Сравнивайте свою видимость с конкурентами. Узнайте, кто чаще упоминается в ИИ-ответах по вашим ключевым тематикам.",
+      direction: "right",
+    },
+    {
+      title: "Исторические тренды",
+      description: "Дашборды с динамикой видимости, графиками упоминаемости и отчётами по периодам. Отслеживайте рост или падение в LLM.",
+      direction: "left",
+    },
+    {
+      title: "Отчёты и алерты",
+      description: "Экспортируйте данные в PDF/CSV, настраивайте уведомления об изменениях видимости и получайте еженедельные дайджесты.",
+      direction: "bottom",
+    },
+  ]
 
   return (
     <section
@@ -15,35 +38,14 @@ export function ServicesSection() {
           }`}
         >
           <h2 className="mb-2 font-sans text-5xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Услуги
+            Возможности
           </h2>
-          <p className="font-mono text-sm text-foreground/60 md:text-base">/ Наши компетенции</p>
+          <p className="font-mono text-sm text-foreground/60 md:text-base">/ Что умеет Флоустат</p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 md:gap-x-16 md:gap-y-12 lg:gap-x-24">
-          {[
-            {
-              title: "Веб-разработка",
-              description: "Создание современных веб-приложений любой сложности",
-              direction: "top",
-            },
-            {
-              title: "UI/UX Дизайн",
-              description: "Проектирование удобных и красивых интерфейсов",
-              direction: "right",
-            },
-            {
-              title: "Мобильные приложения",
-              description: "Кроссплатформенная разработка для iOS и Android",
-              direction: "left",
-            },
-            {
-              title: "Консалтинг",
-              description: "Техническая экспертиза и стратегическое планирование",
-              direction: "bottom",
-            },
-          ].map((service, i) => (
-            <ServiceCard key={i} service={service} index={i} isVisible={isVisible} />
+          {features.map((feature, i) => (
+            <FeatureCard key={i} feature={feature} index={i} isVisible={isVisible} />
           ))}
         </div>
       </div>
@@ -51,18 +53,18 @@ export function ServicesSection() {
   )
 }
 
-function ServiceCard({
-  service,
+function FeatureCard({
+  feature,
   index,
   isVisible,
 }: {
-  service: { title: string; description: string; direction: string }
+  feature: { title: string; description: string; direction: string }
   index: number
   isVisible: boolean
 }) {
   const getRevealClass = () => {
     if (!isVisible) {
-      switch (service.direction) {
+      switch (feature.direction) {
         case "left":
           return "-translate-x-16 opacity-0"
         case "right":
@@ -89,8 +91,8 @@ function ServiceCard({
         <div className="h-px w-8 bg-foreground/30 transition-all duration-300 group-hover:w-12 group-hover:bg-foreground/50" />
         <span className="font-mono text-xs text-foreground/60">0{index + 1}</span>
       </div>
-      <h3 className="mb-2 font-sans text-2xl font-light text-foreground md:text-3xl">{service.title}</h3>
-      <p className="max-w-sm text-sm leading-relaxed text-foreground/80 md:text-base">{service.description}</p>
+      <h3 className="mb-2 font-sans text-2xl font-light text-foreground md:text-3xl">{feature.title}</h3>
+      <p className="max-w-sm text-sm leading-relaxed text-foreground/80 md:text-base">{feature.description}</p>
     </div>
   )
 }
