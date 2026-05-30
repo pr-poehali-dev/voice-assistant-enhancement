@@ -38,10 +38,13 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
 
         {/* Заголовок */}
         <div
-          className={`mb-2 transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "-translate-y-8 opacity-0"
+          className={`mb-10 transition-all duration-700 md:mb-14 ${
+            isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
           }`}
         >
+          <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
+            Для кого
+          </h2>
           <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
