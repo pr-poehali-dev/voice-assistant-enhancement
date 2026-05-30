@@ -3,19 +3,19 @@ import { useReveal } from "@/hooks/use-reveal"
 
 const audiences = [
   {
-    number: "01",
     title: "Маркетологи",
+    label: "Brand & Reputation",
     description: "Управляйте репутацией бренда в ответах ChatGPT, Алисы и других ИИ-систем.",
     utps: [
       "Узнайте, как ИИ описывает ваш бренд — позитивно или нейтрально",
       "Сравните видимость с конкурентами в каждой LLM-платформе",
-      "Получайте еженедельные отчёты об изменениях без ручного мониторинга",
+      "Получайте еженедельные отчёты без ручного мониторинга",
       "Реагируйте на репутационные риски раньше, чем они стали проблемой",
     ],
   },
   {
-    number: "02",
     title: "SEO-специалисты",
+    label: "Search & Visibility",
     description: "Анализируйте источники, которые цитируют LLM, и опережайте конкурентов в ИИ-выдаче.",
     utps: [
       "Видите, какие страницы вашего сайта цитируют ChatGPT и Perplexity",
@@ -25,9 +25,9 @@ const audiences = [
     ],
   },
   {
-    number: "03",
     title: "Digital-агентства",
-    description: "Предлагайте GEO-продвижение как новую услугу. White-label отчёты, мультибрендовый доступ.",
+    label: "Agency & White-label",
+    description: "Предлагайте GEO-продвижение как новую услугу с высокой маржой.",
     utps: [
       "Добавьте GEO-аудит в прайс — новая услуга с высокой маржой",
       "Управляйте несколькими клиентами из одного кабинета",
@@ -41,6 +41,8 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
   const { ref, isVisible } = useReveal(0.15)
   const [active, setActive] = useState(0)
 
+  const current = audiences[active]
+
   return (
     <section
       ref={ref}
@@ -50,7 +52,7 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
 
         {/* Заголовок */}
         <div
-          className={`mb-12 transition-all duration-700 md:mb-16 ${
+          className={`mb-16 transition-all duration-700 md:mb-20 ${
             isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
           }`}
         >
@@ -60,75 +62,88 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
           <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Табы */}
+        {/* Основной лейаут */}
         <div
-          className={`mb-10 flex gap-2 transition-all duration-700 md:mb-12 md:gap-3 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+          className={`transition-all duration-700 ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
           style={{ transitionDelay: "150ms" }}
         >
-          {audiences.map((item, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className={`rounded-full px-4 py-2 font-sans text-sm font-medium transition-all duration-300 md:px-6 md:py-2.5 md:text-base ${
-                active === i
-                  ? "bg-foreground text-background"
-                  : "border border-foreground/15 text-foreground/50 hover:border-foreground/30 hover:text-foreground/80"
-              }`}
-            >
-              {item.title}
-            </button>
-          ))}
-        </div>
+          <div className="flex flex-col gap-12 md:flex-row md:gap-0">
 
-        {/* Контент таба */}
-        <div
-          className={`transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
-          style={{ transitionDelay: "250ms" }}
-        >
-          {audiences.map((item, i) => (
-            <div
-              key={i}
-              className={`transition-all duration-500 ${
-                active === i ? "block opacity-100" : "hidden opacity-0"
-              }`}
-            >
-              <div className="grid gap-8 md:grid-cols-[1fr_1.2fr] md:gap-16">
+            {/* Левая колонка — вертикальный список аудиторий */}
+            <div className="flex flex-row gap-3 md:w-64 md:flex-col md:gap-0 md:border-r md:border-foreground/10 md:pr-12 lg:w-80">
+              {audiences.map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`group relative flex flex-col items-start text-left transition-all duration-300 ${
+                    active === i ? "" : "opacity-40 hover:opacity-70"
+                  } md:border-b md:border-foreground/10 md:py-6 md:first:pt-0`}
+                >
+                  {/* Активная полоска слева — только десктоп */}
+                  <div
+                    className={`absolute -right-12 top-0 hidden h-full w-px transition-all duration-300 md:block ${
+                      active === i ? "bg-foreground" : "bg-transparent"
+                    }`}
+                  />
 
-                {/* Левая — описание */}
-                <div>
-                  <div className="mb-6 font-mono text-xs text-foreground/30 md:text-sm">{item.number}</div>
-                  <p className="mb-8 font-sans text-xl font-light leading-relaxed text-foreground/70 md:text-2xl lg:text-3xl">
-                    {item.description}
-                  </p>
-                  <div className="h-px w-16 bg-foreground/20" />
-                </div>
+                  <span className="mb-0.5 font-mono text-[10px] text-foreground/40 md:text-xs">
+                    {item.label}
+                  </span>
+                  <span
+                    className={`font-sans font-light transition-all duration-300 ${
+                      active === i
+                        ? "text-foreground"
+                        : "text-foreground/60"
+                    } text-base md:text-xl lg:text-2xl`}
+                  >
+                    {item.title}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-                {/* Правая — УТП список */}
-                <ul className="space-y-4 md:space-y-5">
-                  {item.utps.map((utp, j) => (
-                    <li key={j} className="flex items-start gap-4">
-                      <span className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-foreground/20 font-mono text-[10px] text-foreground/40">
-                        {j + 1}
-                      </span>
-                      <span className="font-mono text-sm leading-relaxed text-foreground/70 md:text-base">
+            {/* Правая колонка — контент */}
+            <div className="flex-1 md:pl-16 lg:pl-24">
+              <div key={active} className="animate-in fade-in slide-in-from-bottom-2 duration-400">
+
+                {/* Большой заголовок аудитории */}
+                <h3 className="mb-4 font-sans text-3xl font-light text-foreground md:text-5xl lg:text-6xl">
+                  {current.title}
+                </h3>
+
+                {/* Описание */}
+                <p className="mb-10 max-w-lg font-mono text-sm leading-relaxed text-foreground/55 md:text-base">
+                  {current.description}
+                </p>
+
+                {/* УТП */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {current.utps.map((utp, j) => (
+                    <div
+                      key={j}
+                      className="rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-5 transition-colors duration-200 hover:border-foreground/15 hover:bg-foreground/[0.04]"
+                    >
+                      <div className="mb-2 font-mono text-[10px] text-foreground/25">
+                        0{j + 1}
+                      </div>
+                      <p className="font-mono text-xs leading-relaxed text-foreground/65 md:text-sm">
                         {utp}
-                      </span>
-                    </li>
+                      </p>
+                    </div>
                   ))}
-                </ul>
+                </div>
 
               </div>
             </div>
-          ))}
+
+          </div>
         </div>
 
         {/* Кнопки */}
         <div
-          className={`mt-14 flex flex-wrap gap-3 transition-all duration-700 md:mt-20 md:gap-4 ${
+          className={`mt-16 flex flex-wrap gap-3 transition-all duration-700 md:mt-20 md:gap-4 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
           style={{ transitionDelay: "400ms" }}
