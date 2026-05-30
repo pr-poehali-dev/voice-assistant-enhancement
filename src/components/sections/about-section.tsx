@@ -1,41 +1,42 @@
 import { useReveal } from "@/hooks/use-reveal"
 
-const audiences = [
+const cols = [
+  { num: "01", title: "Маркетологи", tag: "Brand" },
+  { num: "02", title: "SEO-специалисты", tag: "Search" },
+  { num: "03", title: "Агентства", tag: "Agency" },
+]
+
+const rows = [
   {
-    num: "01",
-    title: "Маркетологи",
-    tag: "Brand & Reputation",
-    bg: "bg-slate-50",
+    category: "Мониторинг",
     utps: [
-      { icon: "◐", label: "Тональность", text: "Как ChatGPT описывает ваш бренд — позитивно или негативно" },
-      { icon: "⊞", label: "Сравнение", text: "Видимость против конкурентов в каждой LLM" },
-      { icon: "◷", label: "Автоматика", text: "Еженедельные отчёты без ручного мониторинга" },
-      { icon: "△", label: "Риски", text: "Репутационные угрозы — раньше, чем стали проблемой" },
+      "Тональность бренда в ChatGPT и Алисе",
+      "Страницы сайта, которые цитирует LLM",
+      "Все клиенты из одного кабинета",
     ],
   },
   {
-    num: "02",
-    title: "SEO-специалисты",
-    tag: "Search & Visibility",
-    bg: "bg-zinc-900",
-    dark: true,
+    category: "Аналитика",
     utps: [
-      { icon: "⊕", label: "Источники", text: "Какие страницы цитируют ChatGPT и Perplexity" },
-      { icon: "◈", label: "Конкуренты", text: "Источники выше вас — найди и обойди" },
-      { icon: "↗", label: "Динамика", text: "Рост видимости после каждой публикации" },
-      { icon: "◎", label: "Стратегия", text: "GEO-продвижение на реальных данных" },
+      "Видимость против конкурентов по каждой LLM",
+      "Источники выше вас — найди и обойди",
+      "White-label отчёты с вашим брендом",
     ],
   },
   {
-    num: "03",
-    title: "Агентства",
-    tag: "Agency & White-label",
-    bg: "bg-slate-50",
+    category: "Отчёты",
     utps: [
-      { icon: "✦", label: "Новая услуга", text: "GEO-аудит — растущий рынок, мало конкурентов" },
-      { icon: "⊟", label: "Мультикабинет", text: "Все клиенты из единого рабочего пространства" },
-      { icon: "◻", label: "White-label", text: "Отчёты с логотипом вашего агентства" },
-      { icon: "≡", label: "Доказательства", text: "Рост видимости клиента в цифрах" },
+      "Еженедельные отчёты без ручной работы",
+      "Динамика роста после каждой публикации",
+      "Цифры эффективности для клиента",
+    ],
+  },
+  {
+    category: "Стратегия",
+    utps: [
+      "Репутационные риски — до появления проблем",
+      "GEO-стратегия на реальных данных",
+      "GEO-аудит — новая высокомаржинальная услуга",
     ],
   },
 ]
@@ -51,76 +52,95 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
       <div className="mx-auto w-full max-w-7xl">
 
         {/* Заголовок */}
-        <div className={`mb-12 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
+        <div className={`mb-14 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
           <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
             Для кого
           </h2>
           <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Три карточки */}
-        <div className={`grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ transitionDelay: "150ms" }}>
-          {audiences.map((item) => (
-            <div
-              key={item.num}
-              className={`flex flex-col rounded-3xl p-7 md:p-8 lg:p-10 ${item.bg}`}
-            >
+        {/* Таблица */}
+        <div className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ transitionDelay: "150ms" }}>
+          <div className="overflow-x-auto rounded-3xl border border-foreground/10">
+            <table className="w-full min-w-[640px] border-collapse">
+
               {/* Шапка */}
-              <div className="mb-8">
-                <div className="mb-4 flex items-center justify-between">
-                  <span className={`font-mono text-xs ${item.dark ? "text-white/30" : "text-foreground/25"}`}>
-                    {item.num}
-                  </span>
-                  <span className={`rounded-full px-2.5 py-1 font-mono text-[9px] ${
-                    item.dark
-                      ? "bg-white/10 text-white/40"
-                      : "bg-black/5 text-foreground/35"
-                  }`}>
-                    {item.tag}
-                  </span>
-                </div>
-                <h3 className={`font-sans text-3xl font-light leading-none md:text-4xl ${item.dark ? "text-white" : "text-foreground"}`}>
-                  {item.title}
-                </h3>
-              </div>
+              <thead>
+                <tr>
+                  {/* Пустая ячейка */}
+                  <th className="w-32 border-b border-r border-foreground/10 bg-foreground/[0.02] p-5 text-left md:w-40 lg:w-48" />
 
-              {/* Разделитель */}
-              <div className={`mb-7 h-px ${item.dark ? "bg-white/10" : "bg-black/8"}`} />
+                  {cols.map((col, i) => (
+                    <th
+                      key={i}
+                      className={`border-b border-foreground/10 p-5 text-left align-bottom ${
+                        i < cols.length - 1 ? "border-r" : ""
+                      } ${i === 1 ? "bg-foreground" : "bg-foreground/[0.02]"}`}
+                    >
+                      <span className={`mb-1 block font-mono text-[10px] ${i === 1 ? "text-white/30" : "text-foreground/25"}`}>
+                        {col.num} · {col.tag}
+                      </span>
+                      <span className={`font-sans text-lg font-light md:text-2xl ${i === 1 ? "text-white" : "text-foreground"}`}>
+                        {col.title}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-              {/* УТП */}
-              <div className="flex flex-col gap-5">
-                {item.utps.map((utp, j) => (
-                  <div key={j} className="flex items-start gap-3">
-                    <span className={`mt-0.5 flex-shrink-0 text-base ${item.dark ? "text-white/25" : "text-foreground/20"}`}>
-                      {utp.icon}
-                    </span>
-                    <div>
-                      <p className={`mb-0.5 font-mono text-[10px] font-medium uppercase tracking-widest ${item.dark ? "text-white/30" : "text-foreground/30"}`}>
-                        {utp.label}
-                      </p>
-                      <p className={`font-mono text-xs leading-relaxed ${item.dark ? "text-white/55" : "text-foreground/55"}`}>
-                        {utp.text}
-                      </p>
-                    </div>
-                  </div>
+              {/* Строки */}
+              <tbody>
+                {rows.map((row, ri) => (
+                  <tr key={ri} className={ri % 2 === 0 ? "" : "bg-foreground/[0.015]"}>
+                    {/* Категория */}
+                    <td className={`border-r border-foreground/10 p-5 align-top ${ri < rows.length - 1 ? "border-b" : ""}`}>
+                      <span className="font-mono text-[10px] font-medium uppercase tracking-widest text-foreground/30">
+                        {row.category}
+                      </span>
+                    </td>
+
+                    {/* УТП по колонкам */}
+                    {row.utps.map((utp, ci) => (
+                      <td
+                        key={ci}
+                        className={`p-5 align-top ${ci < cols.length - 1 ? "border-r border-foreground/10" : ""} ${ri < rows.length - 1 ? "border-b border-foreground/10" : ""} ${ci === 1 ? "bg-foreground/[0.02]" : ""}`}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <div className={`mt-[5px] h-1.5 w-1.5 flex-shrink-0 rounded-full ${ci === 1 ? "bg-white/20" : "bg-foreground/20"}`} />
+                          <span className={`font-mono text-xs leading-relaxed ${ci === 1 ? "text-white/60" : "text-foreground/55"} md:text-sm`}>
+                            {utp}
+                          </span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </div>
 
-              {/* Кнопка */}
-              <div className="mt-8 pt-2">
-                <button
-                  onClick={() => scrollToSection?.(5)}
-                  className={`w-full rounded-2xl py-3 font-sans text-sm font-medium transition-opacity duration-200 hover:opacity-80 ${
-                    item.dark
-                      ? "bg-white text-zinc-900"
-                      : "bg-foreground text-background"
-                  }`}
-                >
-                  Попробовать
-                </button>
-              </div>
-            </div>
-          ))}
+                {/* Строка с кнопками */}
+                <tr>
+                  <td className="border-r border-foreground/10 p-5" />
+                  {cols.map((_, ci) => (
+                    <td
+                      key={ci}
+                      className={`p-5 ${ci < cols.length - 1 ? "border-r border-foreground/10" : ""} ${ci === 1 ? "bg-foreground/[0.02]" : ""}`}
+                    >
+                      <button
+                        onClick={() => scrollToSection?.(5)}
+                        className={`rounded-xl px-4 py-2.5 font-sans text-sm font-medium transition-opacity duration-200 hover:opacity-80 ${
+                          ci === 1
+                            ? "bg-white text-zinc-900"
+                            : "border border-foreground/20 text-foreground/70 hover:border-foreground/40"
+                        }`}
+                      >
+                        Попробовать
+                      </button>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+
+            </table>
+          </div>
         </div>
 
       </div>
