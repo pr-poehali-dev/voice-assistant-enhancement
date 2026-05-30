@@ -1,42 +1,40 @@
 import { useReveal } from "@/hooks/use-reveal"
 
-const cols = [
-  { num: "01", title: "Маркетологи", tag: "Brand" },
-  { num: "02", title: "SEO-специалисты", tag: "Search" },
-  { num: "03", title: "Агентства", tag: "Agency" },
-]
-
-const rows = [
+const audiences = [
   {
-    category: "Мониторинг",
+    num: "01",
+    title: "Марке-\nтологи",
+    tag: "Brand & Reputation",
+    lead: "Управляйте тем, что ИИ говорит о вашем бренде — до того, как это стало проблемой.",
     utps: [
-      "Тональность бренда в ChatGPT и Алисе",
-      "Страницы сайта, которые цитирует LLM",
-      "Все клиенты из одного кабинета",
+      "Тональность ответов ChatGPT и Алисы о вашем бренде",
+      "Видимость против конкурентов в каждой LLM-платформе",
+      "Автоматические еженедельные отчёты об изменениях",
+      "Репутационные угрозы — раньше, чем они проявились",
     ],
   },
   {
-    category: "Аналитика",
+    num: "02",
+    title: "SEO-\nспециалисты",
+    tag: "Search & Visibility",
+    lead: "Займите первые позиции в ИИ-поиске — пока конкуренты ещё не знают о GEO.",
     utps: [
-      "Видимость против конкурентов по каждой LLM",
-      "Источники выше вас — найди и обойди",
-      "White-label отчёты с вашим брендом",
+      "Страницы сайта, которые цитируют ChatGPT и Perplexity",
+      "Источники выше вас в LLM-выдаче — найди и обойди",
+      "Динамика роста видимости после каждой публикации",
+      "GEO-стратегия на реальных данных, а не догадках",
     ],
   },
   {
-    category: "Отчёты",
+    num: "03",
+    title: "Digital-\nагентства",
+    tag: "Agency & White-label",
+    lead: "Добавьте GEO-продвижение в прайс — новая услуга с высокой маржой и низкой конкуренцией.",
     utps: [
-      "Еженедельные отчёты без ручной работы",
-      "Динамика роста после каждой публикации",
-      "Цифры эффективности для клиента",
-    ],
-  },
-  {
-    category: "Стратегия",
-    utps: [
-      "Репутационные риски — до появления проблем",
-      "GEO-стратегия на реальных данных",
-      "GEO-аудит — новая высокомаржинальная услуга",
+      "GEO-аудит как новая высокомаржинальная услуга",
+      "Все клиенты из единого рабочего пространства",
+      "White-label отчёты с логотипом вашего агентства",
+      "Доказательства эффективности в цифрах для клиента",
     ],
   },
 ]
@@ -51,96 +49,70 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
     >
       <div className="mx-auto w-full max-w-7xl">
 
-        {/* Заголовок */}
-        <div className={`mb-14 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
-          <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Для кого
-          </h2>
-          <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
+        {/* Шапка газеты */}
+        <div className={`mb-0 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"}`}>
+          <div className="flex items-end justify-between border-b-2 border-foreground pb-3">
+            <h2 className="font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
+              Для кого
+            </h2>
+            <span className="mb-1 font-mono text-xs text-foreground/30 md:text-sm">Флоустат · 2025</span>
+          </div>
+          <div className="flex items-center justify-between border-b border-foreground/15 py-2">
+            <span className="font-mono text-[10px] text-foreground/30 md:text-xs">/ Кому нужен Флоустат</span>
+            <span className="font-mono text-[10px] text-foreground/30 md:text-xs">AI Visibility Analytics · LLM Monitoring · GEO</span>
+          </div>
         </div>
 
-        {/* Таблица */}
-        <div className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ transitionDelay: "150ms" }}>
-          <div className="overflow-x-auto rounded-3xl border border-foreground/10">
-            <table className="w-full min-w-[640px] border-collapse">
+        {/* Три колонки */}
+        <div
+          className={`mt-0 grid grid-cols-1 divide-y divide-foreground/10 md:grid-cols-3 md:divide-x md:divide-y-0 transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}
+          style={{ transitionDelay: "100ms" }}
+        >
+          {audiences.map((item, i) => (
+            <div key={i} className="px-0 py-8 md:px-8 md:py-10 md:first:pl-0 md:last:pr-0">
 
-              {/* Шапка */}
-              <thead>
-                <tr>
-                  {/* Пустая ячейка */}
-                  <th className="w-32 border-b border-r border-foreground/10 bg-foreground/[0.02] p-5 text-left md:w-40 lg:w-48" />
+              {/* Номер */}
+              <span className="mb-4 block font-mono text-[10px] text-foreground/25 md:text-xs">
+                {item.num} — {item.tag}
+              </span>
 
-                  {cols.map((col, i) => (
-                    <th
-                      key={i}
-                      className={`border-b border-foreground/10 p-5 text-left align-bottom ${
-                        i < cols.length - 1 ? "border-r" : ""
-                      } ${i === 1 ? "bg-foreground" : "bg-foreground/[0.02]"}`}
-                    >
-                      <span className={`mb-1 block font-mono text-[10px] ${i === 1 ? "text-white/30" : "text-foreground/25"}`}>
-                        {col.num} · {col.tag}
-                      </span>
-                      <span className={`font-sans text-lg font-light md:text-2xl ${i === 1 ? "text-white" : "text-foreground"}`}>
-                        {col.title}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+              {/* Крупный заголовок ЦА */}
+              <h3
+                className="mb-5 whitespace-pre-line font-sans font-light leading-[0.95] tracking-tight text-foreground"
+                style={{ fontSize: "clamp(2.8rem, 5vw, 4.5rem)" }}
+              >
+                {item.title}
+              </h3>
 
-              {/* Строки */}
-              <tbody>
-                {rows.map((row, ri) => (
-                  <tr key={ri} className={ri % 2 === 0 ? "" : "bg-foreground/[0.015]"}>
-                    {/* Категория */}
-                    <td className={`border-r border-foreground/10 p-5 align-top ${ri < rows.length - 1 ? "border-b" : ""}`}>
-                      <span className="font-mono text-[10px] font-medium uppercase tracking-widest text-foreground/30">
-                        {row.category}
-                      </span>
-                    </td>
+              {/* Лид */}
+              <p className="mb-6 border-t border-foreground/10 pt-5 font-sans text-sm leading-relaxed text-foreground/60 md:text-base">
+                {item.lead}
+              </p>
 
-                    {/* УТП по колонкам */}
-                    {row.utps.map((utp, ci) => (
-                      <td
-                        key={ci}
-                        className={`p-5 align-top ${ci < cols.length - 1 ? "border-r border-foreground/10" : ""} ${ri < rows.length - 1 ? "border-b border-foreground/10" : ""} ${ci === 1 ? "bg-foreground/[0.02]" : ""}`}
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <div className={`mt-[5px] h-1.5 w-1.5 flex-shrink-0 rounded-full ${ci === 1 ? "bg-white/20" : "bg-foreground/20"}`} />
-                          <span className={`font-mono text-xs leading-relaxed ${ci === 1 ? "text-white/60" : "text-foreground/55"} md:text-sm`}>
-                            {utp}
-                          </span>
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
+              {/* УТП — нумерованный список */}
+              <ol className="space-y-3">
+                {item.utps.map((utp, j) => (
+                  <li key={j} className="flex gap-3">
+                    <span className="mt-px flex-shrink-0 font-mono text-[10px] text-foreground/20 md:text-xs">
+                      {String(j + 1).padStart(2, "0")}
+                    </span>
+                    <span className="font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
+                      {utp}
+                    </span>
+                  </li>
                 ))}
+              </ol>
 
-                {/* Строка с кнопками */}
-                <tr>
-                  <td className="border-r border-foreground/10 p-5" />
-                  {cols.map((_, ci) => (
-                    <td
-                      key={ci}
-                      className={`p-5 ${ci < cols.length - 1 ? "border-r border-foreground/10" : ""} ${ci === 1 ? "bg-foreground/[0.02]" : ""}`}
-                    >
-                      <button
-                        onClick={() => scrollToSection?.(5)}
-                        className={`rounded-xl px-4 py-2.5 font-sans text-sm font-medium transition-opacity duration-200 hover:opacity-80 ${
-                          ci === 1
-                            ? "bg-white text-zinc-900"
-                            : "border border-foreground/20 text-foreground/70 hover:border-foreground/40"
-                        }`}
-                      >
-                        Попробовать
-                      </button>
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
+              {/* Ссылка */}
+              <button
+                onClick={() => scrollToSection?.(5)}
+                className="mt-8 font-mono text-xs text-foreground/40 underline underline-offset-4 transition-colors hover:text-foreground"
+              >
+                Запросить демо →
+              </button>
 
-            </table>
-          </div>
+            </div>
+          ))}
         </div>
 
       </div>
