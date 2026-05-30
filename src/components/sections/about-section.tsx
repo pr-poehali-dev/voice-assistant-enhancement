@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useReveal } from "@/hooks/use-reveal"
 
 const audiences = [
@@ -6,28 +5,21 @@ const audiences = [
     number: "01",
     title: "Маркетологи",
     description: "Управляйте репутацией бренда в ответах ChatGPT, Алисы и других ИИ-систем.",
-    tags: ["Бренд-мониторинг", "Репутация", "ИИ-видимость"],
-    accent: "Бренд",
   },
   {
     number: "02",
     title: "SEO-специалисты",
     description: "Анализируйте источники, которые цитируют LLM, и опережайте конкурентов в ИИ-выдаче.",
-    tags: ["Анализ источников", "Конкуренты", "Промпты"],
-    accent: "Поиск",
   },
   {
     number: "03",
     title: "Digital-агентства",
     description: "Предлагайте GEO-продвижение как новую услугу. White-label отчёты, мультибрендовый доступ.",
-    tags: ["White-label", "Мультибренд", "Отчёты"],
-    accent: "Агентство",
   },
 ]
 
 export function AboutSection({ scrollToSection }: { scrollToSection?: (index: number) => void }) {
   const { ref, isVisible } = useReveal(0.15)
-  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section
@@ -38,7 +30,7 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
 
         {/* Заголовок */}
         <div
-          className={`mb-10 transition-all duration-700 md:mb-14 ${
+          className={`mb-12 transition-all duration-700 md:mb-16 ${
             isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
           }`}
         >
@@ -49,88 +41,34 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
         </div>
 
         {/* Строки */}
-        <div className="mt-0">
+        <div>
           {audiences.map((item, i) => (
-            <div
-              key={i}
-              className={`transition-all duration-700 ${
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              }`}
-              style={{ transitionDelay: `${80 + i * 120}ms` }}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {/* Разделитель сверху */}
+            <div key={i}>
               <div className="h-px w-full bg-foreground/10" />
-
-              <div className="group relative grid cursor-default grid-cols-[3rem_1fr] gap-4 py-8 transition-all duration-300 md:grid-cols-[5rem_1fr_auto] md:gap-8 md:py-10 lg:py-12">
-
-                {/* Полоса-подсветка при hover */}
-                <div
-                  className={`absolute inset-0 -mx-5 rounded-2xl transition-all duration-500 md:-mx-8 ${
-                    hovered === i ? "bg-foreground/[0.04]" : "bg-transparent"
-                  }`}
-                />
-
+              <div
+                className={`grid grid-cols-[2.5rem_1fr] gap-6 py-8 transition-all duration-700 md:grid-cols-[4rem_1fr_1.5fr] md:gap-12 md:py-10 ${
+                  isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                }`}
+                style={{ transitionDelay: `${100 + i * 120}ms` }}
+              >
                 {/* Номер */}
-                <div className="relative flex items-start pt-1">
-                  <span
-                    className={`font-mono text-xs transition-all duration-300 md:text-sm ${
-                      hovered === i ? "text-foreground/60" : "text-foreground/20"
-                    }`}
-                  >
-                    {item.number}
-                  </span>
-                </div>
+                <span className="pt-1 font-mono text-xs text-foreground/30 md:text-sm">
+                  {item.number}
+                </span>
 
-                {/* Центр: заголовок + описание */}
-                <div className="relative min-w-0">
-                  <h2
-                    className={`font-sans font-light leading-none tracking-tight transition-all duration-500 ${
-                      hovered === i ? "text-foreground" : "text-foreground/70"
-                    }`}
-                    style={{ fontSize: "clamp(2.5rem, 6vw, 5.5rem)" }}
-                  >
-                    {item.title}
-                  </h2>
+                {/* Название */}
+                <h3 className="font-sans text-2xl font-light text-foreground md:text-4xl lg:text-5xl">
+                  {item.title}
+                </h3>
 
-                  <div
-                    className={`overflow-hidden transition-all duration-500 ${
-                      hovered === i ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <p className="mt-3 max-w-xl font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Правая часть: теги — только десктоп */}
-                <div className="relative hidden flex-col items-end justify-center gap-2 md:flex">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className={`rounded-full border px-3 py-1 font-mono text-[10px] transition-all duration-300 md:text-xs ${
-                        hovered === i
-                          ? "border-foreground/25 text-foreground/60"
-                          : "border-foreground/10 text-foreground/25"
-                      }`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {/* Описание — скрыто на мобиле, справа на десктопе */}
+                <p className="hidden font-mono text-sm leading-relaxed text-foreground/50 md:block md:pt-2">
+                  {item.description}
+                </p>
               </div>
             </div>
           ))}
-
-          {/* Финальный разделитель */}
-          <div
-            className={`h-px w-full bg-foreground/10 transition-all duration-700 ${
-              isVisible ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ transitionDelay: "500ms" }}
-          />
+          <div className="h-px w-full bg-foreground/10" />
         </div>
 
         {/* Кнопки */}
@@ -138,7 +76,7 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
           className={`mt-12 flex flex-wrap gap-3 transition-all duration-700 md:mt-16 md:gap-4 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
-          style={{ transitionDelay: "550ms" }}
+          style={{ transitionDelay: "500ms" }}
         >
           <button
             onClick={() => scrollToSection?.(5)}
