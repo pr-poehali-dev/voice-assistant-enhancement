@@ -2,6 +2,7 @@ import { Shader, ChromaFlow, Swirl } from "shaders/react"
 import { GrainOverlay } from "@/components/grain-overlay"
 import { ProblemSection } from "@/components/sections/work-section"
 import { FeaturesSection } from "@/components/sections/services-section"
+import { HowItWorksSection } from "@/components/sections/how-it-works-section"
 import { AboutSection } from "@/components/sections/about-section"
 import { ContactSection } from "@/components/sections/contact-section"
 import { MagneticButton } from "@/components/magnetic-button"
@@ -124,7 +125,7 @@ export default function Index() {
         </button>
 
         <div className="hidden items-center gap-8 md:flex">
-          {["Главная", "Проблема", "Возможности", "О платформе", "Контакты"].map((item, index) => (
+          {["Главная", "Проблема", "Возможности", "Как работает", "О платформе", "Контакты"].map((item, index) => (
             <button
               key={item}
               onClick={() => scrollToSection(index)}
@@ -144,7 +145,7 @@ export default function Index() {
 
         {/* Мобильная навигация — точки */}
         <div className="flex items-center gap-1.5 md:hidden">
-          {[0, 1, 2, 3, 4].map((i) => (
+          {[0, 1, 2, 3, 4, 5].map((i) => (
             <button
               key={i}
               onClick={() => scrollToSection(i)}
@@ -156,7 +157,7 @@ export default function Index() {
         </div>
 
         <div className="hidden md:block">
-          <MagneticButton variant="secondary" onClick={() => scrollToSection(4)}>
+          <MagneticButton variant="secondary" onClick={() => scrollToSection(5)}>
             Запросить демо
           </MagneticButton>
         </div>
@@ -214,7 +215,7 @@ export default function Index() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <MagneticButton size="lg" variant="primary" onClick={() => scrollToSection(4)}>
+                <MagneticButton size="lg" variant="primary" onClick={() => scrollToSection(5)}>
                   Запросить демо
                 </MagneticButton>
                 <MagneticButton size="lg" variant="secondary" onClick={() => scrollToSection(2)}>
@@ -261,9 +262,12 @@ export default function Index() {
           <FeaturesSection />
         </div>
         <div ref={(el) => { sectionRefs.current[3] = el as HTMLElement }}>
-          <AboutSection scrollToSection={scrollToSection} />
+          <HowItWorksSection />
         </div>
         <div ref={(el) => { sectionRefs.current[4] = el as HTMLElement }}>
+          <AboutSection scrollToSection={scrollToSection} />
+        </div>
+        <div ref={(el) => { sectionRefs.current[5] = el as HTMLElement }}>
           <ContactSection />
         </div>
       </div>
