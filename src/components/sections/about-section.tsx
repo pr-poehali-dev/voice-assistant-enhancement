@@ -1,31 +1,33 @@
+import { useState } from "react"
 import { useReveal } from "@/hooks/use-reveal"
 
 const audiences = [
   {
-    emoji: "📈",
+    number: "01",
     title: "Маркетологи",
-    description: "Отслеживайте, как ИИ-системы представляют ваш бренд, и управляйте репутацией в генеративном поиске.",
+    description: "Управляйте репутацией бренда в ответах ChatGPT, Алисы и других ИИ-систем.",
     tags: ["Бренд-мониторинг", "Репутация", "ИИ-видимость"],
-    direction: "left",
+    accent: "Бренд",
   },
   {
-    emoji: "🔍",
+    number: "02",
     title: "SEO-специалисты",
-    description: "Анализируйте источники, которые цитируют LLM, находите точки роста и опережайте конкурентов в ИИ-выдаче.",
+    description: "Анализируйте источники, которые цитируют LLM, и опережайте конкурентов в ИИ-выдаче.",
     tags: ["Анализ источников", "Конкуренты", "Промпты"],
-    direction: "up",
+    accent: "Поиск",
   },
   {
-    emoji: "🏢",
+    number: "03",
     title: "Digital-агентства",
-    description: "Предлагайте клиентам новую услугу — GEO-продвижение. Белые отчёты, мультибрендовый доступ.",
-    tags: ["White-label", "Несколько брендов", "Отчёты"],
-    direction: "right",
+    description: "Предлагайте GEO-продвижение как новую услугу. White-label отчёты, мультибрендовый доступ.",
+    tags: ["White-label", "Мультибренд", "Отчёты"],
+    accent: "Агентство",
   },
 ]
 
 export function AboutSection({ scrollToSection }: { scrollToSection?: (index: number) => void }) {
-  const { ref, isVisible } = useReveal(0.2)
+  const { ref, isVisible } = useReveal(0.15)
+  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section
@@ -36,61 +38,96 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
 
         {/* Заголовок */}
         <div
-          className={`mb-16 transition-all duration-700 md:mb-20 ${
-            isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
+          className={`mb-2 transition-all duration-700 ${
+            isVisible ? "translate-y-0 opacity-100" : "-translate-y-8 opacity-0"
           }`}
         >
-          <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Для кого
-          </h2>
-          <p className="font-mono text-xs text-foreground/60 md:text-base">/ Кому нужен Флоустат</p>
+          <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Карточки */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-          {audiences.map((item, i) => {
-            const getReveal = () => {
-              if (!isVisible) {
-                if (item.direction === "left") return "-translate-x-12 opacity-0"
-                if (item.direction === "right") return "translate-x-12 opacity-0"
-                return "translate-y-12 opacity-0"
-              }
-              return "translate-x-0 translate-y-0 opacity-100"
-            }
+        {/* Строки */}
+        <div className="mt-0">
+          {audiences.map((item, i) => (
+            <div
+              key={i}
+              className={`transition-all duration-700 ${
+                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+              }`}
+              style={{ transitionDelay: `${80 + i * 120}ms` }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              {/* Разделитель сверху */}
+              <div className="h-px w-full bg-foreground/10" />
 
-            return (
-              <div
-                key={i}
-                className={`group flex flex-col rounded-3xl border border-foreground/10 bg-foreground/[0.03] p-8 transition-all duration-700 hover:border-foreground/20 hover:bg-foreground/[0.06] md:p-10 ${getReveal()}`}
-                style={{ transitionDelay: `${150 + i * 130}ms` }}
-              >
-                {/* Эмодзи */}
-                <div className="mb-6 text-4xl md:text-5xl">{item.emoji}</div>
+              <div className="group relative grid cursor-default grid-cols-[3rem_1fr] gap-4 py-8 transition-all duration-300 md:grid-cols-[5rem_1fr_auto] md:gap-8 md:py-10 lg:py-12">
 
-                {/* Заголовок */}
-                <h3 className="mb-3 font-sans text-2xl font-light text-foreground transition-transform duration-300 group-hover:translate-x-0.5 md:text-3xl">
-                  {item.title}
-                </h3>
+                {/* Полоса-подсветка при hover */}
+                <div
+                  className={`absolute inset-0 -mx-5 rounded-2xl transition-all duration-500 md:-mx-8 ${
+                    hovered === i ? "bg-foreground/[0.04]" : "bg-transparent"
+                  }`}
+                />
 
-                {/* Описание */}
-                <p className="mb-6 font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
-                  {item.description}
-                </p>
+                {/* Номер */}
+                <div className="relative flex items-start pt-1">
+                  <span
+                    className={`font-mono text-xs transition-all duration-300 md:text-sm ${
+                      hovered === i ? "text-foreground/60" : "text-foreground/20"
+                    }`}
+                  >
+                    {item.number}
+                  </span>
+                </div>
 
-                {/* Теги */}
-                <div className="mt-auto flex flex-wrap gap-2">
+                {/* Центр: заголовок + описание */}
+                <div className="relative min-w-0">
+                  <h2
+                    className={`font-sans font-light leading-none tracking-tight transition-all duration-500 ${
+                      hovered === i ? "text-foreground" : "text-foreground/70"
+                    }`}
+                    style={{ fontSize: "clamp(2.5rem, 6vw, 5.5rem)" }}
+                  >
+                    {item.title}
+                  </h2>
+
+                  <div
+                    className={`overflow-hidden transition-all duration-500 ${
+                      hovered === i ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <p className="mt-3 max-w-xl font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Правая часть: теги — только десктоп */}
+                <div className="relative hidden flex-col items-end justify-center gap-2 md:flex">
                   {item.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-foreground/15 px-3 py-1 font-mono text-[10px] text-foreground/50 md:text-xs"
+                      className={`rounded-full border px-3 py-1 font-mono text-[10px] transition-all duration-300 md:text-xs ${
+                        hovered === i
+                          ? "border-foreground/25 text-foreground/60"
+                          : "border-foreground/10 text-foreground/25"
+                      }`}
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
               </div>
-            )
-          })}
+            </div>
+          ))}
+
+          {/* Финальный разделитель */}
+          <div
+            className={`h-px w-full bg-foreground/10 transition-all duration-700 ${
+              isVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transitionDelay: "500ms" }}
+          />
         </div>
 
         {/* Кнопки */}
@@ -98,7 +135,7 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
           className={`mt-12 flex flex-wrap gap-3 transition-all duration-700 md:mt-16 md:gap-4 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
-          style={{ transitionDelay: "600ms" }}
+          style={{ transitionDelay: "550ms" }}
         >
           <button
             onClick={() => scrollToSection?.(5)}
