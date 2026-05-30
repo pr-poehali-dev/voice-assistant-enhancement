@@ -48,7 +48,7 @@ export function HowItWorksSection() {
         </div>
 
         {/* Три колонки */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
+        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-3 md:gap-8">
           {steps.map((step, i) => (
             <StepCard key={i} step={step} index={i} isVisible={isVisible} />
           ))}
@@ -72,13 +72,13 @@ function StepCard({
 
   return (
     <div
-      className={`group flex flex-col transition-all duration-700 ${
+      className={`group flex h-full flex-col transition-all duration-700 ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
       }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      {/* Карточка */}
-      <div className="relative flex flex-col overflow-hidden rounded-3xl border border-foreground/10 bg-foreground/[0.03] p-8 transition-all duration-500 hover:border-foreground/20 hover:bg-foreground/[0.06] md:p-10">
+      {/* Карточка — h-full растягивает до высоты строки grid */}
+      <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-foreground/10 bg-foreground/[0.03] p-8 transition-all duration-500 hover:border-foreground/20 hover:bg-foreground/[0.06] md:p-10">
 
         {/* Стикер — большой, центрированный */}
         <div className="mb-8 flex items-center justify-center">
@@ -93,8 +93,8 @@ function StepCard({
           {step.title}
         </h3>
 
-        {/* Описание */}
-        <p className="font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
+        {/* Описание — mt-auto прижимает к низу при разной длине */}
+        <p className="mt-auto pt-3 font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
           {step.description}
         </p>
       </div>
@@ -107,28 +107,21 @@ function StepCard({
 function SparkleSticker() {
   return (
     <div className="relative flex h-36 w-36 items-center justify-center md:h-44 md:w-44">
-      {/* Фон — полупрозрачный круг */}
       <div className="absolute inset-0 rounded-full bg-white/8 backdrop-blur-sm" />
       <div className="absolute inset-2 rounded-full bg-white/5" />
-      {/* Звёздочка ИИ */}
-      <svg viewBox="0 0 80 80" className="relative h-20 w-20 md:h-24 md:w-24" fill="none">
-        {/* Большая звезда */}
+      {/* Звёздочка в стиле Gemini — 4 вытянутых луча + малая звёздочка */}
+      <svg viewBox="0 0 96 96" className="relative h-20 w-20 md:h-24 md:w-24" fill="none">
+        {/* Основная 4-лучевая звезда (характерная форма Gemini/ИИ) */}
         <path
-          d="M40 4 L43.5 33.5 L73 40 L43.5 46.5 L40 76 L36.5 46.5 L7 40 L36.5 33.5 Z"
+          d="M48 6 C48 6 51 30 56 40 C62 51 90 48 90 48 C90 48 62 51 56 56 C51 62 48 90 48 90 C48 90 45 62 40 56 C34 51 6 48 6 48 C6 48 34 45 40 40 C45 34 48 6 48 6 Z"
           fill="white"
-          fillOpacity="0.9"
+          fillOpacity="0.92"
         />
-        {/* Маленькая звезда сверху справа */}
+        {/* Маленькая звёздочка справа сверху */}
         <path
-          d="M64 10 L65.4 17.6 L73 19 L65.4 20.4 L64 28 L62.6 20.4 L55 19 L62.6 17.6 Z"
+          d="M76 16 C76 16 77.2 22.8 79 24 C80.8 25.2 88 24 88 24 C88 24 80.8 24.8 79 26 C77.2 27.2 76 34 76 34 C76 34 74.8 27.2 73 26 C71.2 24.8 64 24 64 24 C64 24 71.2 23.2 73 22 C74.8 20.8 76 16 76 16 Z"
           fill="white"
-          fillOpacity="0.5"
-        />
-        {/* Маленькая звезда снизу слева */}
-        <path
-          d="M18 54 L19 59 L24 60 L19 61 L18 66 L17 61 L12 60 L17 59 Z"
-          fill="white"
-          fillOpacity="0.4"
+          fillOpacity="0.55"
         />
       </svg>
     </div>
@@ -138,19 +131,52 @@ function SparkleSticker() {
 function PlanetSticker() {
   return (
     <div className="relative flex h-36 w-36 items-center justify-center md:h-44 md:w-44">
-      {/* Фон */}
       <div className="absolute inset-0 rounded-full bg-white/8 backdrop-blur-sm" />
       <div className="absolute inset-2 rounded-full bg-white/5" />
-      {/* Планета */}
-      <svg viewBox="0 0 80 80" className="relative h-20 w-20 md:h-24 md:w-24" fill="none">
-        {/* Орбита — эллипс */}
-        <ellipse cx="40" cy="40" rx="36" ry="14" stroke="white" strokeOpacity="0.35" strokeWidth="2" />
-        {/* Планета */}
-        <circle cx="40" cy="40" r="18" fill="white" fillOpacity="0.85" />
-        {/* Тень на планете */}
-        <circle cx="44" cy="38" r="18" fill="black" fillOpacity="0.18" />
-        {/* Маленький спутник */}
-        <circle cx="68" cy="35" r="4" fill="white" fillOpacity="0.5" />
+      {/* Земля с континентами */}
+      <svg viewBox="0 0 96 96" className="relative h-20 w-20 md:h-24 md:w-24" fill="none">
+        {/* Ocean / base circle */}
+        <circle cx="48" cy="48" r="38" fill="white" fillOpacity="0.15" />
+        <circle cx="48" cy="48" r="38" stroke="white" strokeOpacity="0.3" strokeWidth="1.5" />
+        {/* Континенты — упрощённые силуэты */}
+        {/* Евразия */}
+        <path
+          d="M34 22 L42 19 L52 21 L60 24 L65 30 L68 36 L64 40 L58 38 L52 42 L46 40 L40 43 L34 40 L30 34 L28 28 Z"
+          fill="white"
+          fillOpacity="0.8"
+        />
+        {/* Африка */}
+        <path
+          d="M42 46 L50 44 L56 48 L58 56 L55 64 L50 70 L44 68 L40 60 L38 52 Z"
+          fill="white"
+          fillOpacity="0.75"
+        />
+        {/* Северная Америка */}
+        <path
+          d="M14 26 L22 22 L28 26 L26 34 L20 38 L14 36 L10 30 Z"
+          fill="white"
+          fillOpacity="0.7"
+        />
+        {/* Южная Америка */}
+        <path
+          d="M20 46 L26 44 L30 50 L28 60 L22 66 L18 60 L16 52 Z"
+          fill="white"
+          fillOpacity="0.65"
+        />
+        {/* Австралия */}
+        <path
+          d="M66 58 L74 56 L78 62 L74 68 L66 68 L62 63 Z"
+          fill="white"
+          fillOpacity="0.6"
+        />
+        {/* Тень-полумесяц справа */}
+        <path
+          d="M72 25 A38 38 0 0 1 72 71 A32 32 0 0 0 72 25 Z"
+          fill="black"
+          fillOpacity="0.12"
+        />
+        {/* Орбитальное кольцо */}
+        <ellipse cx="48" cy="48" rx="46" ry="16" stroke="white" strokeOpacity="0.2" strokeWidth="1.5" strokeDasharray="4 3" />
       </svg>
     </div>
   )
