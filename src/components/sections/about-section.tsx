@@ -3,45 +3,46 @@ import { useReveal } from "@/hooks/use-reveal"
 
 const audiences = [
   {
+    num: "01",
     title: "Маркетологи",
     label: "Brand & Reputation",
     description: "Управляйте репутацией бренда в ответах ChatGPT, Алисы и других ИИ-систем.",
     utps: [
-      "Узнайте, как ИИ описывает ваш бренд — позитивно или нейтрально",
-      "Сравните видимость с конкурентами в каждой LLM-платформе",
-      "Получайте еженедельные отчёты без ручного мониторинга",
-      "Реагируйте на репутационные риски раньше, чем они стали проблемой",
+      "Как ИИ описывает ваш бренд — позитивно или нейтрально",
+      "Сравнение видимости с конкурентами по каждой LLM",
+      "Еженедельные отчёты без ручного мониторинга",
+      "Репутационные риски — до того, как стали проблемой",
     ],
   },
   {
+    num: "02",
     title: "SEO-специалисты",
     label: "Search & Visibility",
     description: "Анализируйте источники, которые цитируют LLM, и опережайте конкурентов в ИИ-выдаче.",
     utps: [
-      "Видите, какие страницы вашего сайта цитируют ChatGPT и Perplexity",
-      "Находите источники, которые LLM предпочитает вашим — и обходите их",
-      "Отслеживайте рост видимости после публикации нового контента",
-      "Стройте GEO-стратегию на реальных данных, а не на догадках",
+      "Какие страницы сайта цитируют ChatGPT и Perplexity",
+      "Источники, которые LLM предпочитает вашим",
+      "Рост видимости после публикации нового контента",
+      "GEO-стратегия на реальных данных, а не догадках",
     ],
   },
   {
+    num: "03",
     title: "Digital-агентства",
     label: "Agency & White-label",
-    description: "Предлагайте GEO-продвижение как новую услугу с высокой маржой.",
+    description: "Предлагайте GEO-продвижение как новую высокомаржинальную услугу.",
     utps: [
-      "Добавьте GEO-аудит в прайс — новая услуга с высокой маржой",
-      "Управляйте несколькими клиентами из одного кабинета",
-      "Выгружайте white-label отчёты с логотипом вашего агентства",
-      "Докажите клиенту эффективность работы в цифрах",
+      "GEO-аудит в прайс — новая услуга с высокой маржой",
+      "Несколько клиентов из одного кабинета",
+      "White-label отчёты с логотипом агентства",
+      "Эффективность работы в цифрах для клиента",
     ],
   },
 ]
 
 export function AboutSection({ scrollToSection }: { scrollToSection?: (index: number) => void }) {
   const { ref, isVisible } = useReveal(0.15)
-  const [active, setActive] = useState(0)
-
-  const current = audiences[active]
+  const [open, setOpen] = useState<number | null>(0)
 
   return (
     <section
@@ -52,7 +53,7 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
 
         {/* Заголовок */}
         <div
-          className={`mb-16 transition-all duration-700 md:mb-20 ${
+          className={`mb-14 transition-all duration-700 md:mb-18 ${
             isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
           }`}
         >
@@ -62,88 +63,97 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
           <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Основной лейаут */}
+        {/* Аккордеон */}
         <div
           className={`transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
           style={{ transitionDelay: "150ms" }}
         >
-          <div className="flex flex-col gap-12 md:flex-row md:gap-0">
-
-            {/* Левая колонка — вертикальный список аудиторий */}
-            <div className="flex flex-row gap-3 md:w-64 md:flex-col md:gap-0 md:border-r md:border-foreground/10 md:pr-12 lg:w-80">
-              {audiences.map((item, i) => (
+          {audiences.map((item, i) => {
+            const isOpen = open === i
+            return (
+              <div key={i} className="border-t border-foreground/10 last:border-b">
+                {/* Шапка строки */}
                 <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`group relative flex flex-col items-start text-left transition-all duration-300 ${
-                    active === i ? "" : "opacity-40 hover:opacity-70"
-                  } md:border-b md:border-foreground/10 md:py-6 md:first:pt-0`}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="group flex w-full items-center gap-6 py-6 text-left transition-all duration-200 md:py-8 md:gap-10"
                 >
-                  {/* Активная полоска слева — только десктоп */}
-                  <div
-                    className={`absolute -right-12 top-0 hidden h-full w-px transition-all duration-300 md:block ${
-                      active === i ? "bg-foreground" : "bg-transparent"
-                    }`}
-                  />
-
-                  <span className="mb-0.5 font-mono text-[10px] text-foreground/40 md:text-xs">
-                    {item.label}
+                  {/* Номер */}
+                  <span className={`w-8 flex-shrink-0 font-mono text-xs transition-colors duration-300 md:text-sm ${isOpen ? "text-foreground/50" : "text-foreground/20"}`}>
+                    {item.num}
                   </span>
+
+                  {/* Название */}
                   <span
-                    className={`font-sans font-light transition-all duration-300 ${
-                      active === i
-                        ? "text-foreground"
-                        : "text-foreground/60"
-                    } text-base md:text-xl lg:text-2xl`}
+                    className={`flex-1 font-sans font-light tracking-tight transition-all duration-300 ${
+                      isOpen ? "text-foreground" : "text-foreground/50 group-hover:text-foreground/80"
+                    }`}
+                    style={{ fontSize: "clamp(1.5rem, 4vw, 3.5rem)" }}
                   >
                     {item.title}
                   </span>
+
+                  {/* Лейбл — только десктоп */}
+                  <span className={`hidden font-mono text-xs transition-all duration-300 md:block ${isOpen ? "text-foreground/40" : "text-foreground/20"}`}>
+                    {item.label}
+                  </span>
+
+                  {/* Иконка +/– */}
+                  <span
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-300 md:h-10 md:w-10 ${
+                      isOpen
+                        ? "border-foreground/30 bg-foreground text-background"
+                        : "border-foreground/15 text-foreground/40 group-hover:border-foreground/30"
+                    }`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      {isOpen
+                        ? <path d="M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        : <>
+                            <path d="M6 2v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            <path d="M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          </>
+                      }
+                    </svg>
+                  </span>
                 </button>
-              ))}
-            </div>
 
-            {/* Правая колонка — контент */}
-            <div className="flex-1 md:pl-16 lg:pl-24">
-              <div key={active} className="animate-in fade-in slide-in-from-bottom-2 duration-400">
+                {/* Раскрытый контент */}
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="grid gap-8 pb-10 md:grid-cols-[1fr_1.4fr] md:gap-16 md:pb-12">
 
-                {/* Большой заголовок аудитории */}
-                <h3 className="mb-4 font-sans text-3xl font-light text-foreground md:text-5xl lg:text-6xl">
-                  {current.title}
-                </h3>
+                    {/* Описание */}
+                    <p className="pl-14 font-sans text-lg font-light leading-relaxed text-foreground/60 md:pl-[4.5rem] md:text-xl lg:text-2xl">
+                      {item.description}
+                    </p>
 
-                {/* Описание */}
-                <p className="mb-10 max-w-lg font-mono text-sm leading-relaxed text-foreground/55 md:text-base">
-                  {current.description}
-                </p>
+                    {/* УТП — 2 колонки */}
+                    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {item.utps.map((utp, j) => (
+                        <li key={j} className="flex items-start gap-3">
+                          <span className="mt-[3px] h-4 w-4 flex-shrink-0 rounded-full bg-foreground/10" />
+                          <span className="font-mono text-xs leading-relaxed text-foreground/60 md:text-sm">
+                            {utp}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
 
-                {/* УТП */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {current.utps.map((utp, j) => (
-                    <div
-                      key={j}
-                      className="rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-5 transition-colors duration-200 hover:border-foreground/15 hover:bg-foreground/[0.04]"
-                    >
-                      <div className="mb-2 font-mono text-[10px] text-foreground/25">
-                        0{j + 1}
-                      </div>
-                      <p className="font-mono text-xs leading-relaxed text-foreground/65 md:text-sm">
-                        {utp}
-                      </p>
-                    </div>
-                  ))}
+                  </div>
                 </div>
-
               </div>
-            </div>
-
-          </div>
+            )
+          })}
         </div>
 
         {/* Кнопки */}
         <div
-          className={`mt-16 flex flex-wrap gap-3 transition-all duration-700 md:mt-20 md:gap-4 ${
+          className={`mt-14 flex flex-wrap gap-3 transition-all duration-700 md:mt-16 md:gap-4 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
           style={{ transitionDelay: "400ms" }}
