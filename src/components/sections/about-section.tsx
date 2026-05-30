@@ -4,61 +4,42 @@ import { useReveal } from "@/hooks/use-reveal"
 const audiences = [
   {
     num: "01",
-    role: "Маркетолог",
-    question: "Что говорит\nо вас ИИ?",
+    title: "Маркетологи",
+    tag: "Brand & Reputation",
     utps: [
       "Как ChatGPT описывает ваш бренд",
-      "Видимость против конкурентов",
-      "Автоматические отчёты каждую неделю",
+      "Видимость vs конкуренты в каждой LLM",
+      "Еженедельные отчёты автоматически",
       "Репутационные риски — заранее",
     ],
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="10" r="5" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
   },
   {
     num: "02",
-    role: "SEO-специалист",
-    question: "Кто выше вас\nв ИИ-выдаче?",
+    title: "SEO-специалисты",
+    tag: "Search & Visibility",
     utps: [
       "Какие страницы цитирует ChatGPT",
-      "Источники, которые LLM ставит выше вас",
-      "Рост видимости после новых публикаций",
+      "Источники выше вас — найди и обойди",
+      "Рост видимости после публикаций",
       "GEO-стратегия на реальных данных",
     ],
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="14" cy="14" r="7" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M19 19l7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
   },
   {
     num: "03",
-    role: "Руководитель агентства",
-    question: "Новая услуга\nдля клиентов?",
+    title: "Агентства",
+    tag: "Agency & White-label",
     utps: [
-      "GEO-аудит — высокомаржинальная услуга",
+      "GEO-аудит — новая высокомаржинальная услуга",
       "Все клиенты из одного кабинета",
-      "White-label отчёты с вашим логотипом",
-      "Цифры эффективности для клиента",
+      "White-label отчёты с вашим брендом",
+      "Цифры эффективности для клиентов",
     ],
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <rect x="4" y="10" width="24" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M10 10V7a6 6 0 0112 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
   },
 ]
 
 export function AboutSection({ scrollToSection }: { scrollToSection?: (index: number) => void }) {
   const { ref, isVisible } = useReveal(0.1)
-  const [active, setActive] = useState(0)
-  const item = audiences[active]
+  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section
@@ -67,103 +48,114 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
     >
       <div className="mx-auto w-full max-w-7xl">
 
-        {/* Заголовок */}
+        {/* Верхняя строка: заголовок + тег */}
         <div
-          className={`mb-12 transition-all duration-700 md:mb-16 ${
-            isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
+          className={`mb-16 flex items-end justify-between transition-all duration-700 md:mb-20 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"
           }`}
         >
-          <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Для кого
-          </h2>
-          <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
+          <div>
+            <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
+              Для кого
+            </h2>
+            <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
+          </div>
+          <span className="hidden font-mono text-xs text-foreground/25 md:block">
+            {hovered !== null ? audiences[hovered].tag : "Наведите на строку"}
+          </span>
         </div>
 
-        {/* Основной блок */}
-        <div
-          className={`overflow-hidden rounded-3xl bg-foreground transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-          }`}
-          style={{ transitionDelay: "150ms" }}
-        >
-          <div className="grid md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]">
+        {/* Строки */}
+        <div className="relative">
+          {audiences.map((item, i) => (
+            <div
+              key={i}
+              className={`group relative transition-all duration-700 ${
+                isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+              }`}
+              style={{ transitionDelay: `${i * 100}ms` }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              {/* Разделитель */}
+              <div className="h-px bg-foreground/10" />
 
-            {/* Левая панель — список аудиторий */}
-            <div className="border-b border-white/10 p-6 md:border-b-0 md:border-r md:p-8">
-              <p className="mb-6 font-mono text-xs text-white/30">Выберите роль</p>
-              <div className="flex flex-row gap-2 md:flex-col md:gap-3">
-                {audiences.map((a, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActive(i)}
-                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all duration-300 md:px-5 md:py-4 ${
-                      active === i
-                        ? "bg-white/10 text-white"
-                        : "text-white/35 hover:bg-white/5 hover:text-white/60"
-                    }`}
-                  >
-                    <span className={`transition-colors duration-300 ${active === i ? "text-white" : "text-white/25"}`}>
-                      {a.icon}
-                    </span>
-                    <span className="hidden font-sans text-sm font-light md:block">{a.role}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+              <div className="relative grid grid-cols-[2rem_1fr] gap-4 py-5 md:grid-cols-[3.5rem_1fr_1fr] md:gap-8 md:py-7">
 
-            {/* Правая панель — контент */}
-            <div className="relative overflow-hidden p-8 md:p-12">
+                {/* Номер */}
+                <span className={`self-center font-mono text-xs transition-colors duration-300 md:text-sm ${
+                  hovered === i ? "text-foreground/50" : "text-foreground/20"
+                }`}>
+                  {item.num}
+                </span>
 
-              {/* Большой фоновый номер */}
-              <div
-                className="pointer-events-none absolute -right-6 -top-8 select-none font-sans font-bold leading-none text-white/[0.04]"
-                style={{ fontSize: "clamp(8rem, 20vw, 18rem)" }}
-              >
-                {item.num}
-              </div>
-
-              <div key={active} className="relative">
-
-                {/* Роль */}
-                <p className="mb-4 font-mono text-xs text-white/30 md:text-sm">
-                  {item.num} · {item.role}
-                </p>
-
-                {/* Большой вопрос */}
+                {/* Название */}
                 <h3
-                  className="mb-10 whitespace-pre-line font-sans font-light leading-tight text-white md:mb-12"
-                  style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+                  className={`self-center font-sans font-light leading-none tracking-tight transition-all duration-300 ${
+                    hovered === i ? "text-foreground" : "text-foreground/40"
+                  }`}
+                  style={{ fontSize: "clamp(2rem, 5.5vw, 5rem)" }}
                 >
-                  {item.question}
+                  {item.title}
                 </h3>
 
-                {/* УТП */}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {item.utps.map((utp, j) => (
-                    <div
-                      key={j}
-                      className="flex items-start gap-3 rounded-2xl bg-white/5 p-4"
-                    >
-                      <span className="mt-0.5 font-mono text-[10px] text-white/25">0{j + 1}</span>
-                      <span className="font-mono text-xs leading-relaxed text-white/60 md:text-sm">{utp}</span>
-                    </div>
-                  ))}
+                {/* УТП — появляются при hover, только десктоп */}
+                <div className="hidden self-center md:block">
+                  <div className={`grid grid-cols-2 gap-x-6 gap-y-1.5 transition-all duration-500 ${
+                    hovered === i ? "opacity-100" : "opacity-0"
+                  }`}>
+                    {item.utps.map((utp, j) => (
+                      <div key={j} className="flex items-start gap-2">
+                        <div className="mt-[5px] h-1 w-1 flex-shrink-0 rounded-full bg-foreground/30" />
+                        <span className="font-mono text-[11px] leading-relaxed text-foreground/50">
+                          {utp}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* CTA */}
-                <div className="mt-8 md:mt-10">
-                  <button
-                    onClick={() => scrollToSection?.(5)}
-                    className="rounded-full bg-white px-6 py-3 font-sans text-sm font-medium text-foreground transition-all duration-200 hover:bg-white/90 md:px-8 md:py-3"
-                  >
-                    Запросить демо
-                  </button>
+                {/* УТП мобиль — всегда видны */}
+                <div className={`col-span-2 md:hidden transition-all duration-400 overflow-hidden ${
+                  hovered === i ? "max-h-40 opacity-100 pb-2" : "max-h-0 opacity-0"
+                }`}>
+                  <div className="grid grid-cols-1 gap-1.5 pl-10">
+                    {item.utps.map((utp, j) => (
+                      <div key={j} className="flex items-start gap-2">
+                        <div className="mt-[5px] h-1 w-1 flex-shrink-0 rounded-full bg-foreground/30" />
+                        <span className="font-mono text-[11px] leading-relaxed text-foreground/50">{utp}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
               </div>
             </div>
+          ))}
 
-          </div>
+          {/* Последний разделитель */}
+          <div className="h-px bg-foreground/10" />
+        </div>
+
+        {/* Кнопки */}
+        <div
+          className={`mt-14 flex flex-wrap gap-3 transition-all duration-700 md:mt-16 md:gap-4 ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+          }`}
+          style={{ transitionDelay: "400ms" }}
+        >
+          <button
+            onClick={() => scrollToSection?.(5)}
+            className="rounded-full bg-foreground px-6 py-3 font-sans text-sm font-medium text-background transition-all duration-200 hover:opacity-90 md:px-8 md:py-4 md:text-base"
+          >
+            Запросить демо
+          </button>
+          <button
+            onClick={() => scrollToSection?.(2)}
+            className="rounded-full border border-foreground/20 px-6 py-3 font-sans text-sm font-medium text-foreground/80 transition-all duration-200 hover:border-foreground/40 hover:text-foreground md:px-8 md:py-4 md:text-base"
+          >
+            Возможности
+          </button>
         </div>
 
       </div>
