@@ -3,38 +3,41 @@ import { useReveal } from "@/hooks/use-reveal"
 const audiences = [
   {
     num: "01",
-    title: "Марке-\nтологи",
+    title: "Маркетологи",
     tag: "Brand & Reputation",
-    lead: "Управляйте тем, что ИИ говорит о вашем бренде — до того, как это стало проблемой.",
+    metric: "84%",
+    metricLabel: "средняя видимость бренда в LLM",
     utps: [
-      "Тональность ответов ChatGPT и Алисы о вашем бренде",
-      "Видимость против конкурентов в каждой LLM-платформе",
-      "Автоматические еженедельные отчёты об изменениях",
-      "Репутационные угрозы — раньше, чем они проявились",
+      "Тональность ответов ChatGPT и Алисы о бренде",
+      "Видимость против конкурентов по каждой LLM",
+      "Автоматические отчёты без ручной работы",
+      "Репутационные угрозы — до появления проблем",
     ],
   },
   {
     num: "02",
-    title: "SEO-\nспециалисты",
+    title: "SEO-специалисты",
     tag: "Search & Visibility",
-    lead: "Займите первые позиции в ИИ-поиске — пока конкуренты ещё не знают о GEO.",
+    metric: "↑3×",
+    metricLabel: "рост цитирований после GEO-оптимизации",
     utps: [
-      "Страницы сайта, которые цитируют ChatGPT и Perplexity",
-      "Источники выше вас в LLM-выдаче — найди и обойди",
-      "Динамика роста видимости после каждой публикации",
-      "GEO-стратегия на реальных данных, а не догадках",
+      "Страницы сайта, которые цитирует ChatGPT",
+      "Источники выше вас в LLM — найди и обойди",
+      "Динамика роста после каждой публикации",
+      "GEO-стратегия на реальных данных",
     ],
   },
   {
     num: "03",
-    title: "Digital-\nагентства",
+    title: "Digital-агентства",
     tag: "Agency & White-label",
-    lead: "Добавьте GEO-продвижение в прайс — новая услуга с высокой маржой и низкой конкуренцией.",
+    metric: "12+",
+    metricLabel: "LLM-платформ в одном кабинете",
     utps: [
-      "GEO-аудит как новая высокомаржинальная услуга",
+      "GEO-аудит — новая высокомаржинальная услуга",
       "Все клиенты из единого рабочего пространства",
-      "White-label отчёты с логотипом вашего агентства",
-      "Доказательства эффективности в цифрах для клиента",
+      "White-label отчёты с вашим логотипом",
+      "Цифры эффективности для каждого клиента",
     ],
   },
 ]
@@ -49,70 +52,87 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
     >
       <div className="mx-auto w-full max-w-7xl">
 
-        {/* Шапка газеты */}
-        <div className={`mb-0 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"}`}>
-          <div className="flex items-end justify-between border-b-2 border-foreground pb-3">
-            <h2 className="font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
-              Для кого
-            </h2>
-            <span className="mb-1 font-mono text-xs text-foreground/30 md:text-sm">Флоустат · 2025</span>
-          </div>
-          <div className="flex items-center justify-between border-b border-foreground/15 py-2">
-            <span className="font-mono text-[10px] text-foreground/30 md:text-xs">/ Кому нужен Флоустат</span>
-            <span className="font-mono text-[10px] text-foreground/30 md:text-xs">AI Visibility Analytics · LLM Monitoring · GEO</span>
-          </div>
+        {/* Заголовок */}
+        <div className={`mb-14 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
+          <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
+            Для кого
+          </h2>
+          <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Три колонки */}
-        <div
-          className={`mt-0 grid grid-cols-1 divide-y divide-foreground/10 md:grid-cols-3 md:divide-x md:divide-y-0 transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}
-          style={{ transitionDelay: "100ms" }}
-        >
+        {/* Три горизонтальные плитки */}
+        <div className={`flex flex-col gap-4 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`} style={{ transitionDelay: "150ms" }}>
           {audiences.map((item, i) => (
-            <div key={i} className="px-0 py-8 md:px-8 md:py-10 md:first:pl-0 md:last:pr-0">
+            <div
+              key={i}
+              className="grid grid-cols-1 overflow-hidden rounded-2xl border border-foreground/10 md:grid-cols-[220px_1px_1fr] lg:grid-cols-[280px_1px_1fr]"
+            >
+              {/* Левая — метрика */}
+              <div className="flex flex-col justify-between bg-foreground/[0.02] p-7 md:p-8">
+                <div>
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="font-mono text-[10px] text-foreground/25">{item.num}</span>
+                    <span className="font-mono text-[10px] text-foreground/25">·</span>
+                    <span className="font-mono text-[10px] text-foreground/25">{item.tag}</span>
+                  </div>
+                  <h3 className="mt-3 font-sans text-2xl font-light text-foreground md:text-3xl">
+                    {item.title}
+                  </h3>
+                </div>
+                <div className="mt-6 md:mt-0">
+                  <div className="font-sans text-5xl font-light tabular-nums text-foreground md:text-6xl">
+                    {item.metric}
+                  </div>
+                  <p className="mt-1 font-mono text-[10px] leading-relaxed text-foreground/35 md:text-xs">
+                    {item.metricLabel}
+                  </p>
+                </div>
+              </div>
 
-              {/* Номер */}
-              <span className="mb-4 block font-mono text-[10px] text-foreground/25 md:text-xs">
-                {item.num} — {item.tag}
-              </span>
+              {/* Разделитель */}
+              <div className="hidden bg-foreground/8 md:block" />
 
-              {/* Крупный заголовок ЦА */}
-              <h3
-                className="mb-5 whitespace-pre-line font-sans font-light leading-[0.95] tracking-tight text-foreground"
-                style={{ fontSize: "clamp(2.8rem, 5vw, 4.5rem)" }}
-              >
-                {item.title}
-              </h3>
-
-              {/* Лид */}
-              <p className="mb-6 border-t border-foreground/10 pt-5 font-sans text-sm leading-relaxed text-foreground/60 md:text-base">
-                {item.lead}
-              </p>
-
-              {/* УТП — нумерованный список */}
-              <ol className="space-y-3">
+              {/* Правая — УТП */}
+              <div className="grid grid-cols-1 gap-0 sm:grid-cols-2">
                 {item.utps.map((utp, j) => (
-                  <li key={j} className="flex gap-3">
-                    <span className="mt-px flex-shrink-0 font-mono text-[10px] text-foreground/20 md:text-xs">
+                  <div
+                    key={j}
+                    className={`flex items-start gap-3 p-6 md:p-7 ${
+                      j % 2 === 0 ? "border-r border-foreground/8" : ""
+                    } ${
+                      j < 2 ? "border-b border-foreground/8" : ""
+                    }`}
+                  >
+                    <span className="mt-px flex-shrink-0 font-mono text-[10px] text-foreground/20">
                       {String(j + 1).padStart(2, "0")}
                     </span>
-                    <span className="font-mono text-xs leading-relaxed text-foreground/55 md:text-sm">
+                    <span className="font-mono text-xs leading-relaxed text-foreground/60 md:text-sm">
                       {utp}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ol>
-
-              {/* Ссылка */}
-              <button
-                onClick={() => scrollToSection?.(5)}
-                className="mt-8 font-mono text-xs text-foreground/40 underline underline-offset-4 transition-colors hover:text-foreground"
-              >
-                Запросить демо →
-              </button>
-
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Кнопки */}
+        <div
+          className={`mt-10 flex flex-wrap gap-3 transition-all duration-700 md:gap-4 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          style={{ transitionDelay: "300ms" }}
+        >
+          <button
+            onClick={() => scrollToSection?.(5)}
+            className="rounded-full bg-foreground px-6 py-3 font-sans text-sm font-medium text-background transition-opacity hover:opacity-80 md:px-8 md:py-4 md:text-base"
+          >
+            Запросить демо
+          </button>
+          <button
+            onClick={() => scrollToSection?.(2)}
+            className="rounded-full border border-foreground/20 px-6 py-3 font-sans text-sm font-medium text-foreground/70 transition-all hover:border-foreground/40 hover:text-foreground md:px-8 md:py-4 md:text-base"
+          >
+            Возможности
+          </button>
         </div>
 
       </div>
