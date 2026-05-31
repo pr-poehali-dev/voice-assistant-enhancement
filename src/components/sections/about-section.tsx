@@ -1,55 +1,49 @@
+import { useState } from "react"
 import { useReveal } from "@/hooks/use-reveal"
 
 const audiences = [
   {
+    id: "marketers",
     num: "01",
     title: "Маркетологи",
-    tag: "Brand & Reputation",
-    reverse: false,
-    visual: "📣",
-    visualBg: "bg-blue-50",
-    stats: [{ value: "84%", label: "средняя видимость" }, { value: "12+", label: "LLM платформ" }],
+    description: "Контролируйте, что нейросети говорят о вашем бренде покупателям",
     utps: [
-      "Тональность бренда в ChatGPT и Алисе — позитивно или негативно",
-      "Видимость против конкурентов в каждой LLM-платформе",
-      "Автоматические еженедельные отчёты без ручной работы",
-      "Репутационные угрозы — до того, как стали проблемой",
+      { icon: "📊", title: "Тональность бренда", text: "ChatGPT рекомендует вас или отговаривает? Узнайте по каждой платформе." },
+      { icon: "⚔️", title: "Сравнение с конкурентами", text: "Видимость вашего бренда против конкурентов — в одной таблице." },
+      { icon: "📬", title: "Автоотчёты", text: "Еженедельный дайджест на почту без единого ручного действия." },
+      { icon: "🚨", title: "Репутационные риски", text: "Негативные упоминания — до того, как они стали вирусными." },
     ],
   },
   {
+    id: "seo",
     num: "02",
     title: "SEO-специалисты",
-    tag: "Search & Visibility",
-    reverse: true,
-    visual: "🔍",
-    visualBg: "bg-emerald-50",
-    stats: [{ value: "↑3×", label: "рост цитирований" }, { value: "24/7", label: "мониторинг" }],
+    description: "Выясните, почему конкурент в ответах ChatGPT, а вы — нет",
     utps: [
-      "Страницы сайта, которые цитируют ChatGPT и Perplexity",
-      "Источники выше вас в LLM-выдаче — найди и обойди их",
-      "Динамика роста видимости после каждой публикации",
-      "GEO-стратегия на реальных данных, а не на догадках",
+      { icon: "📄", title: "Источники цитирования", text: "Какие страницы вашего сайта LLM берёт за основу ответов." },
+      { icon: "🔬", title: "Гэп-анализ", text: "Источники, которые стоят выше вас в LLM-выдаче — найди и обойди." },
+      { icon: "📈", title: "Динамика роста", text: "Рост видимости после каждой публикации — в конкретных цифрах." },
+      { icon: "🗺️", title: "GEO-стратегия", text: "Данные для стратегии продвижения в LLM, а не догадки." },
     ],
   },
   {
+    id: "agencies",
     num: "03",
-    title: "Digital-агентства",
-    tag: "Agency & White-label",
-    reverse: false,
-    visual: "🏢",
-    visualBg: "bg-violet-50",
-    stats: [{ value: "WL", label: "white-label" }, { value: "∞", label: "клиентов" }],
+    title: "Агентства",
+    description: "Добавьте GEO-аудит в прайс и выигрывайте у конкурентов",
     utps: [
-      "GEO-аудит — новая высокомаржинальная услуга в прайсе",
-      "Все клиенты из единого рабочего пространства",
-      "White-label отчёты с логотипом вашего агентства",
-      "Цифры эффективности для каждого клиента",
+      { icon: "💎", title: "Новая маржинальная услуга", text: "GEO-аудит — рынок только формируется, конкуренция ещё низкая." },
+      { icon: "🏷️", title: "White-label", text: "Отчёты с вашим логотипом и брендбуком — клиент видит только агентство." },
+      { icon: "🗂️", title: "Все клиенты в одном месте", text: "Единый кабинет для управления проектами всех ваших клиентов." },
+      { icon: "📐", title: "Доказательства ROI", text: "Рост видимости клиента в цифрах после каждого спринта работ." },
     ],
   },
 ]
 
 export function AboutSection({ scrollToSection }: { scrollToSection?: (index: number) => void }) {
   const { ref, isVisible } = useReveal(0.1)
+  const [active, setActive] = useState(0)
+  const current = audiences[active]
 
   return (
     <section
@@ -59,68 +53,60 @@ export function AboutSection({ scrollToSection }: { scrollToSection?: (index: nu
       <div className="mx-auto w-full max-w-7xl">
 
         {/* Заголовок */}
-        <div className={`mb-20 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
+        <div className={`mb-12 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
           <h2 className="mb-1 font-sans text-4xl font-light tracking-tight text-foreground md:text-6xl lg:text-7xl">
             Для кого
           </h2>
           <p className="font-mono text-xs text-foreground/40 md:text-sm">/ Кому нужен Флоустат</p>
         </div>
 
-        {/* Зебра */}
         <div
-          className={`flex flex-col gap-24 transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}
+          className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           style={{ transitionDelay: "150ms" }}
         >
-          {audiences.map((item, i) => (
-            <div
-              key={i}
-              className={`grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 ${item.reverse ? "md:[&>*:first-child]:order-2" : ""}`}
-            >
-              {/* Текст */}
-              <div>
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="font-mono text-xs text-foreground/25">{item.num}</span>
-                  <span className="h-px flex-1 bg-foreground/10" />
-                  <span className="font-mono text-xs text-foreground/25">{item.tag}</span>
+          {/* Табы */}
+          <div className="mb-0 flex gap-0 overflow-hidden rounded-t-2xl border border-b-0 border-foreground/10">
+            {audiences.map((a, i) => (
+              <button
+                key={a.id}
+                onClick={() => setActive(i)}
+                className={`flex flex-1 flex-col gap-0.5 border-r border-foreground/10 px-6 py-4 text-left last:border-r-0 transition-colors md:px-8 md:py-5 ${
+                  active === i
+                    ? "bg-foreground text-background"
+                    : "bg-foreground/[0.02] text-foreground/50 hover:bg-foreground/[0.05] hover:text-foreground/80"
+                }`}
+              >
+                <span className={`font-mono text-[10px] ${active === i ? "text-background/40" : "text-foreground/25"}`}>{a.num}</span>
+                <span className="font-sans text-sm font-medium md:text-base">{a.title}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Контент */}
+          <div className="rounded-b-2xl border border-foreground/10 bg-foreground/[0.02] p-8 md:p-10 lg:p-12">
+            <p className="mb-10 max-w-xl font-sans text-lg font-light text-foreground/60 md:text-xl lg:text-2xl">
+              {current.description}
+            </p>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {current.utps.map((utp, j) => (
+                <div key={j} className="rounded-2xl border border-foreground/8 bg-background p-6">
+                  <div className="mb-3 text-3xl">{utp.icon}</div>
+                  <h4 className="mb-2 font-sans text-sm font-semibold text-foreground">{utp.title}</h4>
+                  <p className="font-mono text-xs leading-relaxed text-foreground/50">{utp.text}</p>
                 </div>
-
-                <h3 className="mb-6 font-sans text-4xl font-light text-foreground md:text-5xl lg:text-6xl">
-                  {item.title}
-                </h3>
-
-                <ul className="mb-8 space-y-4">
-                  {item.utps.map((utp, j) => (
-                    <li key={j} className="flex items-start gap-3">
-                      <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-foreground/30" />
-                      <span className="font-mono text-sm leading-relaxed text-foreground/60">
-                        {utp}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => scrollToSection?.(5)}
-                  className="rounded-full bg-foreground px-6 py-3 font-sans text-sm font-medium text-background transition-opacity hover:opacity-80"
-                >
-                  Попробовать
-                </button>
-              </div>
-
-              {/* Визуал */}
-              <div className={`flex flex-col gap-4 rounded-3xl ${item.visualBg} p-10 md:p-12`}>
-                <div className="text-7xl md:text-8xl">{item.visual}</div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {item.stats.map((s, j) => (
-                    <div key={j} className="rounded-2xl bg-white/60 px-5 py-4 backdrop-blur-sm">
-                      <div className="font-sans text-3xl font-light text-foreground">{s.value}</div>
-                      <div className="font-mono text-xs text-foreground/40">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+
+            <div className="mt-8">
+              <button
+                onClick={() => scrollToSection?.(5)}
+                className="rounded-full border border-foreground/20 px-6 py-3 font-sans text-sm font-medium text-foreground/70 transition-all hover:border-foreground/40 hover:text-foreground"
+              >
+                Попробовать для {current.title.toLowerCase()} →
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
